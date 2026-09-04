@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/asset_management
+    username: postgres
+    password: 2007
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://localhost:5433/asset_management
+    user: postgres
+    password: 2007
+    locations: classpath:db/migration
+
+  autoconfigure:
+    exclude:
+      - io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
