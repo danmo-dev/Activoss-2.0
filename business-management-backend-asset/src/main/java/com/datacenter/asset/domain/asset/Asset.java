@@ -22,11 +22,13 @@ public final class Asset {
     private final Money value;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+    private final Boolean isActive;
+    private final Long version; // 1. Nuevo atributo de dominio
 
     private Asset(AssetId id, UUID companyId, UUID assetTypeId, UUID subAssetTypeId,
                    UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
                    AssetCode code, String name, String description, LocalDate registrationDate,
-                   Money value, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                   Money value, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isActive, Long version) {
         if (companyId == null || assetTypeId == null || ownershipTypeId == null || assetStatusId == null
                 || locationId == null || name == null || name.isBlank() || registrationDate == null) {
             throw new InvalidAssetException("Asset required fields are missing");
@@ -46,29 +48,39 @@ public final class Asset {
         this.value = value;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.isActive = isActive != null ? isActive : true;
+        this.version = version;
     }
 
     public static Asset create(UUID companyId, UUID assetTypeId, UUID subAssetTypeId,
                                UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
                                String code, String name, String description, LocalDate registrationDate) {
+        // La versión nace en null. JPA sabrá que debe hacer un INSERT.
         return new Asset(null, companyId, assetTypeId, subAssetTypeId, ownershipTypeId, assetStatusId,
-                locationId, ownerId, AssetCode.of(code), name, description, registrationDate, null, null, null);
+                locationId, ownerId, AssetCode.of(code), name, description, registrationDate, null, null, null, true, null);
     }
 
     public static Asset restore(AssetId id, UUID companyId, UUID assetTypeId, UUID subAssetTypeId,
                                 UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
                                 AssetCode code, String name, String description, LocalDate registrationDate,
-                                Money value, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                                Money value, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isActive, Long version) {
         return new Asset(id, companyId, assetTypeId, subAssetTypeId, ownershipTypeId, assetStatusId,
-                locationId, ownerId, code, name, description, registrationDate, value, createdAt, updatedAt);
+                locationId, ownerId, code, name, description, registrationDate, value, createdAt, updatedAt, isActive, version);
     }
 
     public Asset update(UUID companyId, UUID assetTypeId, UUID subAssetTypeId, UUID ownershipTypeId,
                         UUID assetStatusId, UUID locationId, UUID ownerId, String code, String name,
                         String description, LocalDate registrationDate) {
+        // Se mantiene la versión actual, JPA la incrementará al guardar
         return new Asset(id, companyId, assetTypeId, subAssetTypeId, ownershipTypeId, assetStatusId,
                 locationId, ownerId, AssetCode.of(code), name, description, registrationDate, value,
-                createdAt, LocalDateTime.now());
+                createdAt, LocalDateTime.now(), this.isActive, this.version);
+    }
+
+    public Asset withActiveState(boolean newActiveState) {
+        return new Asset(id, companyId, assetTypeId, subAssetTypeId, ownershipTypeId, assetStatusId,
+                locationId, ownerId, code, name, description, registrationDate, value,
+                createdAt, LocalDateTime.now(), newActiveState, this.version);
     }
 
     public AssetId getId() { return id; }
@@ -86,4 +98,6 @@ public final class Asset {
     public Money getValue() { return value; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public Boolean getIsActive() { return isActive; }
+    public Long getVersion() { return version; }
 }

@@ -16,7 +16,6 @@ import java.util.UUID;
 public class AssetEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "company_id", nullable = false)
@@ -58,11 +57,12 @@ public class AssetEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     @PreUpdate
     protected void onUpdate() {
