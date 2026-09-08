@@ -35,12 +35,15 @@ public class AssetAssignmentEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Column(name = "state", length = 50)
-    private String state;
+    @Column(name = "state", nullable = false)
+    private String state = "PENDING"; // Valores: PENDING, ACCEPTED, REJECTED
 
     @Column(name = "acceptance_date")
     private LocalDateTime acceptanceDate;
 
-    @Column(name = "pdf_path", length = 500)
+    @Column(name = "pdf_path")
     private String pdfPath;
+
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
 }

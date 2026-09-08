@@ -22,6 +22,7 @@ public class AssetAssignmentPersistenceMapper {
         entity.setState(domain.getState() != null ? domain.getState().name() : null);
         entity.setAcceptanceDate(domain.getAcceptanceDate());
         entity.setPdfPath(domain.getPdfPath());
+        entity.setRejectionReason(domain.getRejectionReason());
         return entity;
     }
 
@@ -39,6 +40,7 @@ public class AssetAssignmentPersistenceMapper {
                 .state(entity.getState() != null ? AssignmentState.valueOf(entity.getState()) : null)
                 .acceptanceDate(entity.getAcceptanceDate())
                 .pdfPath(entity.getPdfPath())
+                .rejectionReason(entity.getRejectionReason())
                 .build();
     }
 }
