@@ -1,9 +1,11 @@
 package com.datacenter.asset.infrastructure.adapters.in.rest.controller;
 
-import com.datacenter.asset.application.service.AssetTypeService;
+import com.datacenter.asset.domain.configuration.AssetType;
+import com.datacenter.asset.domain.ports.in.ManageAssetTypeUseCase;
 import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.CreateAssetTypeRequest;
 import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.UpdateAssetTypeRequest;
 import com.datacenter.asset.infrastructure.adapters.in.rest.dto.response.AssetTypeResponse;
+import com.datacenter.asset.infrastructure.adapters.in.rest.mapper.AssetTypeRestMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,68 +18,50 @@ import java.util.UUID;
 @RequestMapping("/api/v1/asset-types")
 public class AssetTypeController {
 
-    private final AssetTypeService service;
+    private final ManageAssetTypeUseCase useCase;
+    private final AssetTypeRestMapper mapper;
 
-    public AssetTypeController(AssetTypeService service) {
-        this.service = service;
+    public AssetTypeController(ManageAssetTypeUseCase useCase, AssetTypeRestMapper mapper) {
+        this.useCase = useCase;
+        this.mapper = mapper;
     }
 
     @PostMapping
-    public ResponseEntity<AssetTypeResponse> create(
-            @Valid @RequestBody CreateAssetTypeRequest request
-    ) {
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(service.create(request));
+    public ResponseEntity<AssetTypeResponse> create(@Valid @RequestBody CreateAssetTypeRequest request) {
+        AssetType assetType = mapper.toDomain(request);
+        AssetType saved = useCase.create(assetType);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(saved));
     }
 
     @GetMapping
     public ResponseEntity<List<AssetTypeResponse>> findAll() {
-
-        return ResponseEntity.ok(
-                service.findAll()
-        );
+        List<AssetTypeResponse> list = useCase.findAll().stream()
+                .map(mapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AssetTypeResponse> findById(
-            @PathVariable UUID id
-    ) {
-
-        return ResponseEntity.ok(
-                service.findById(id)
-        );
+    public ResponseEntity<AssetTypeResponse> findById(@PathVariable UUID id) {
+        AssetType assetType = useCase.findById(id);
+        return ResponseEntity.ok(mapper.toResponse(assetType));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AssetTypeResponse> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateAssetTypeRequest request
-    ) {
-
-        return ResponseEntity.ok(
-                service.update(id, request)
-        );
+    public ResponseEntity<AssetTypeResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateAssetTypeRequest request) {
+        AssetType updated = useCase.update(id, request.getCode(), request.getName(), request.getDescription());
+        return ResponseEntity.ok(mapper.toResponse(updated));
     }
 
     @PatchMapping("/{id}/activate")
-    public ResponseEntity<AssetTypeResponse> activate(
-            @PathVariable UUID id
-    ) {
-
-        return ResponseEntity.ok(
-                service.activate(id)
-        );
+    public ResponseEntity<AssetTypeResponse> activate(@PathVariable UUID id) {
+        AssetType updated = useCase.activate(id);
+        return ResponseEntity.ok(mapper.toResponse(updated));
     }
 
-        @PatchMapping("/{id}/deactivate")
-        public ResponseEntity<AssetTypeResponse> deactivate(
-            @PathVariable UUID id
-    ) {
-
-        return ResponseEntity.ok(
-                service.deactivate(id)
-        );
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<AssetTypeResponse> deactivate(@PathVariable UUID id) {
+        AssetType updated = useCase.deactivate(id);
+        return ResponseEntity.ok(mapper.toResponse(updated));
     }
 }

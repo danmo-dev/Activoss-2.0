@@ -6,7 +6,7 @@ import com.datacenter.asset.domain.asset.AssetId;
 import com.datacenter.asset.domain.ports.in.ManageAssetLifecycleUseCase;
 import com.datacenter.asset.domain.ports.out.AssetAssignmentRepositoryPort;
 import com.datacenter.asset.domain.ports.out.AssetHistoryRepositoryPort;
-import com.datacenter.asset.domain.ports.out.IAssetRepository;
+import com.datacenter.asset.domain.ports.out.AssetRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AssetLifecycleService implements ManageAssetLifecycleUseCase {
 
-    private final IAssetRepository assetRepository;
+    private final AssetRepositoryPort assetRepository;
     private final AssetHistoryRepositoryPort historyRepository;
     private final AssetAssignmentRepositoryPort assignmentRepository;
 

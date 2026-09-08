@@ -4,7 +4,7 @@ import com.datacenter.asset.domain.asset.AssetId;
 import com.datacenter.asset.domain.asset.AssetValue;
 import com.datacenter.asset.domain.ports.in.SaveAssetValuesUseCase;
 import com.datacenter.asset.domain.ports.out.AssetValueRepositoryPort;
-import com.datacenter.asset.domain.ports.out.IAssetRepository;
+import com.datacenter.asset.domain.ports.out.AssetRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class AssetValueService implements SaveAssetValuesUseCase {
 
     private final AssetValueRepositoryPort valueRepository;
-    private final IAssetRepository assetRepository;
+    private final AssetRepositoryPort assetRepository;
 
     @Override
     @Transactional

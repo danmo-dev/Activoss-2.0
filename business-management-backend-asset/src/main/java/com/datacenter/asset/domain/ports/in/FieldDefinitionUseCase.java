@@ -1,25 +1,23 @@
 package com.datacenter.asset.domain.ports.in;
 
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.CreateFieldDefinitionRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.UpdateFieldDefinitionRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.response.FieldDefinitionResponse;
+import com.datacenter.asset.domain.fielddefinition.FieldDefinition;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface FieldDefinitionUseCase {
 
-    FieldDefinitionResponse create(CreateFieldDefinitionRequest request);
+    FieldDefinition create(FieldDefinition fieldDefinition);
 
-    List<FieldDefinitionResponse> findAll();
+    List<FieldDefinition> findAll();
 
-    FieldDefinitionResponse findById(UUID id);
+    FieldDefinition findById(UUID id);
 
-    List<FieldDefinitionResponse> findBySubAssetTypeId(UUID subAssetTypeId);
+    List<FieldDefinition> findBySubAssetTypeId(UUID subAssetTypeId);
 
-    List<FieldDefinitionResponse> findByFieldGroupId(UUID fieldGroupId);
+    List<FieldDefinition> findByFieldGroupId(UUID fieldGroupId);
 
-    FieldDefinitionResponse update(UUID id, UpdateFieldDefinitionRequest request);
+    FieldDefinition update(FieldDefinition fieldDefinition);
 
     void activate(UUID id);
 

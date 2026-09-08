@@ -1,9 +1,11 @@
 package com.datacenter.asset.infrastructure.adapters.in.rest.controller;
 
-import com.datacenter.asset.application.service.AssetService;
+import com.datacenter.asset.domain.asset.Asset;
+import com.datacenter.asset.domain.ports.in.ManageAssetUseCase;
 import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.CreateAssetRequest;
 import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.UpdateAssetRequest;
 import com.datacenter.asset.infrastructure.adapters.in.rest.dto.response.AssetResponse;
+import com.datacenter.asset.infrastructure.adapters.in.rest.mapper.AssetRestMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,39 +18,39 @@ import java.util.UUID;
 @RequestMapping("/api/v1/assets")
 public class AssetController {
 
-    private final AssetService assetService;
+    private final ManageAssetUseCase useCase;
+    private final AssetRestMapper restMapper;
 
-    public AssetController(AssetService assetService) {
-        this.assetService = assetService;
+    public AssetController(ManageAssetUseCase useCase, AssetRestMapper restMapper) {
+        this.useCase = useCase;
+        this.restMapper = restMapper;
     }
 
     @PostMapping
     public ResponseEntity<AssetResponse> createAsset(@RequestBody CreateAssetRequest request) {
-        AssetResponse createdAsset = assetService.createAsset(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdAsset);
+        Asset domainAsset = restMapper.toDomain(request);
+        Asset createdAsset = useCase.createAsset(domainAsset);
+        return ResponseEntity.status(HttpStatus.CREATED).body(restMapper.toResponse(createdAsset));
     }
 
     @GetMapping
     public ResponseEntity<List<AssetResponse>> getAllAssets() {
-        List<AssetResponse> assets = assetService.findAll(); // Ajustado a findAll()
+        List<AssetResponse> assets = useCase.findAll().stream()
+                .map(restMapper::toResponse)
+                .toList();
         return ResponseEntity.ok(assets);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<AssetResponse> getAssetById(@PathVariable UUID id) {
-        AssetResponse asset = assetService.findById(id);
-        return ResponseEntity.ok(asset);
+        Asset asset = useCase.findById(id);
+        return ResponseEntity.ok(restMapper.toResponse(asset));
     }
 
     @GetMapping("/code/{code}")
-    public ResponseEntity<AssetResponse> getAssetByCode(
-            @PathVariable String code
-    ) {
-
-        AssetResponse asset =
-                assetService.findByCode(code);
-
-        return ResponseEntity.ok(asset);
+    public ResponseEntity<AssetResponse> getAssetByCode(@PathVariable String code) {
+        Asset asset = useCase.findByCode(code);
+        return ResponseEntity.ok(restMapper.toResponse(asset));
     }
 
     @PutMapping("/{id}")
@@ -56,10 +58,11 @@ public class AssetController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateAssetRequest request
     ) {
-
-        AssetResponse updatedAsset =
-                assetService.updateAsset(id, request);
-
-        return ResponseEntity.ok(updatedAsset);
+        Asset updatedAsset = useCase.updateAsset(
+                id, request.getCompanyId(), request.getAssetTypeId(), request.getSubAssetTypeId(),
+                request.getOwnershipTypeId(), request.getAssetStatusId(), request.getLocationId(), request.getOwnerId(),
+                request.getCode(), request.getName(), request.getDescription(), request.getRegistrationDate()
+        );
+        return ResponseEntity.ok(restMapper.toResponse(updatedAsset));
     }
 }

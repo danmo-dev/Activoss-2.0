@@ -4,7 +4,7 @@ import com.datacenter.asset.domain.asset.AssetId;
 import com.datacenter.asset.domain.asset.AssetRelationship;
 import com.datacenter.asset.domain.ports.in.ManageAssetRelationshipsUseCase;
 import com.datacenter.asset.domain.ports.out.AssetRelationshipRepositoryPort;
-import com.datacenter.asset.domain.ports.out.IAssetRepository;
+import com.datacenter.asset.domain.ports.out.AssetRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ import java.util.UUID;
 public class AssetRelationshipService implements ManageAssetRelationshipsUseCase {
 
     private final AssetRelationshipRepositoryPort relationshipRepository;
-    private final IAssetRepository assetRepository;
+    private final AssetRepositoryPort assetRepository;
 
     @Override
     @Transactional

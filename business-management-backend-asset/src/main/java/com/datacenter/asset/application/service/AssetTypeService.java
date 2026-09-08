@@ -1,137 +1,70 @@
 package com.datacenter.asset.application.service;
 
 import com.datacenter.asset.domain.configuration.AssetType;
+import com.datacenter.asset.domain.ports.in.ManageAssetTypeUseCase;
 import com.datacenter.asset.domain.ports.out.AssetTypeRepositoryPort;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.CreateAssetTypeRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.UpdateAssetTypeRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.response.AssetTypeResponse;
-import com.datacenter.asset.infrastructure.adapters.in.rest.mapper.AssetTypeRestMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class AssetTypeService {
+public class AssetTypeService implements ManageAssetTypeUseCase {
 
     private final AssetTypeRepositoryPort repositoryPort;
 
-    private final AssetTypeRestMapper mapper;
-
-    public AssetTypeService(
-            AssetTypeRepositoryPort repositoryPort,
-            AssetTypeRestMapper mapper
-    ) {
+    public AssetTypeService(AssetTypeRepositoryPort repositoryPort) {
         this.repositoryPort = repositoryPort;
-        this.mapper = mapper;
     }
 
-    public AssetTypeResponse create(
-            CreateAssetTypeRequest request
-    ) {
-
-        if (repositoryPort.existsByCode(request.getCode())) {
-            throw new RuntimeException(
-                    "Asset type already exists with code: "
-                            + request.getCode()
-            );
+    @Override
+    public AssetType create(AssetType assetType) {
+        if (repositoryPort.existsByCode(assetType.getCode())) {
+            throw new RuntimeException("Asset type already exists with code: " + assetType.getCode());
         }
-
-        AssetType assetType =
-                mapper.toDomain(request);
-
-        AssetType saved =
-                repositoryPort.save(assetType);
-
-        return mapper.toResponse(saved);
+        return repositoryPort.save(assetType);
     }
 
-    public List<AssetTypeResponse> findAll() {
-
-        return repositoryPort.findAll()
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
+    @Override
+    public List<AssetType> findAll() {
+        return repositoryPort.findAll();
     }
 
-    public AssetTypeResponse findById(UUID id) {
-
+    @Override
+    public AssetType findById(UUID id) {
         return repositoryPort.findById(id)
-                .map(mapper::toResponse)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Asset type not found with id: "
-                                        + id
-                        )
-                );
+                .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
     }
 
-    public AssetTypeResponse update(
-            UUID id,
-            UpdateAssetTypeRequest request
-    ) {
+    @Override
+    public AssetType update(UUID id, String code, String name, String description) {
+        AssetType existing = repositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
 
-        AssetType existing =
-                repositoryPort.findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Asset type not found with id: "
-                                                + id
-                                )
-                        );
-
-        if (!existing.getCode().equals(request.getCode())
-                && repositoryPort.existsByCode(request.getCode())) {
-
-            throw new RuntimeException(
-                    "Asset type already exists with code: "
-                            + request.getCode()
-            );
+        if (!existing.getCode().equals(code) && repositoryPort.existsByCode(code)) {
+            throw new RuntimeException("Asset type already exists with code: " + code);
         }
 
-        existing.setCode(request.getCode());
-        existing.setName(request.getName());
-        existing.setDescription(request.getDescription());
+        existing.setCode(code);
+        existing.setName(name);
+        existing.setDescription(description);
 
-        AssetType updated =
-                repositoryPort.save(existing);
-
-        return mapper.toResponse(updated);
+        return repositoryPort.save(existing);
     }
 
-    public AssetTypeResponse activate(UUID id) {
-
-        AssetType assetType =
-                repositoryPort.findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Asset type not found with id: "
-                                                + id
-                                )
-                        );
-
+    @Override
+    public AssetType activate(UUID id) {
+        AssetType assetType = repositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
         assetType.setActive(true);
-
-        return mapper.toResponse(
-                repositoryPort.save(assetType)
-        );
+        return repositoryPort.save(assetType);
     }
 
-        public AssetTypeResponse deactivate(UUID id) {
-
-        AssetType assetType =
-                repositoryPort.findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Asset type not found with id: "
-                                                + id
-                                )
-                        );
-
+    @Override
+    public AssetType deactivate(UUID id) {
+        AssetType assetType = repositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
         assetType.setActive(false);
-
-        return mapper.toResponse(
-                repositoryPort.save(assetType)
-        );
+        return repositoryPort.save(assetType);
     }
 }

@@ -1,23 +1,21 @@
 package com.datacenter.asset.domain.ports.in;
 
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.CreateFieldGroupRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.UpdateFieldGroupRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.response.FieldGroupResponse;
+import com.datacenter.asset.domain.fieldgroup.FieldGroup;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface FieldGroupUseCase {
 
-    FieldGroupResponse create(CreateFieldGroupRequest request);
+    FieldGroup create(FieldGroup fieldGroup);
 
-    List<FieldGroupResponse> findAll();
+    List<FieldGroup> findAll();
 
-    FieldGroupResponse findById(UUID id);
+    FieldGroup findById(UUID id);
 
-    List<FieldGroupResponse> findBySubAssetTypeId(UUID subAssetTypeId);
+    List<FieldGroup> findBySubAssetTypeId(UUID subAssetTypeId);
 
-    FieldGroupResponse update(UUID id, UpdateFieldGroupRequest request);
+    FieldGroup update(UUID id, String name, Integer displayOrder, UUID subAssetTypeId);
 
     void activate(UUID id);
 

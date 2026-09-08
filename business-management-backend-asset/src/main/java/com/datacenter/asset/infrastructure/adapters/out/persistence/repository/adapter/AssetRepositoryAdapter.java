@@ -3,7 +3,7 @@ package com.datacenter.asset.infrastructure.adapters.out.persistence.repository.
 import com.datacenter.asset.domain.asset.Asset;
 import com.datacenter.asset.domain.asset.AssetCode;
 import com.datacenter.asset.domain.asset.AssetId;
-import com.datacenter.asset.domain.ports.out.IAssetRepository;
+import com.datacenter.asset.domain.ports.out.AssetRepositoryPort;
 import com.datacenter.asset.infrastructure.adapters.out.persistence.entity.AssetEntity;
 import com.datacenter.asset.infrastructure.adapters.out.persistence.mapper.AssetPersistenceMapper;
 import com.datacenter.asset.infrastructure.adapters.out.persistence.repository.jpa.AssetJpaRepository;
@@ -18,14 +18,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
  
 @Component
-public class AssetRepositoryImpl implements IAssetRepository {
+public class AssetRepositoryAdapter implements AssetRepositoryPort {
     private final AssetJpaRepository repository;
     private final AssetPersistenceMapper mapper;
 
     // Nuevo: inyección de EntityManager
     private final EntityManager entityManager;
 
-    public AssetRepositoryImpl(AssetJpaRepository repository, AssetPersistenceMapper mapper, EntityManager entityManager) {
+    public AssetRepositoryAdapter(AssetJpaRepository repository, AssetPersistenceMapper mapper, EntityManager entityManager) {
         this.repository = repository;
         this.mapper = mapper;
         this.entityManager = entityManager;
