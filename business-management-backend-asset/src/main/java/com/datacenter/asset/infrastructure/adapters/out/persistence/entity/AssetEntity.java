@@ -64,6 +64,9 @@ public class AssetEntity {
     @Column(name = "version")
     private Long version;
 
+    @Column(name = "qr_code", length = 255)
+    private String qrCode;
+
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();

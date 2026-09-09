@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
 public class AssetPersistenceMapper {
 
     public AssetEntity toEntity(Asset domain) {
-        if (domain == null) return null;
+        if (domain == null)
+            return null;
         return AssetEntity.builder()
                 .id(domain.getId().value())
                 .companyId(domain.getCompanyId())
@@ -28,29 +29,32 @@ public class AssetPersistenceMapper {
                 .updatedAt(domain.getUpdatedAt())
                 .isActive(domain.getIsActive()) // <-- nuevo campo
                 .version(domain.getVersion())
+                .qrCode(domain.getQrCode()) // <-- nuevo campo
                 .build();
     }
 
     public Asset toDomain(AssetEntity entity) {
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
         return Asset.restore(
-            new AssetId(entity.getId()),
-            entity.getCompanyId(),
-            entity.getAssetTypeId(),
-            entity.getSubAssetTypeId(),
-            entity.getOwnershipTypeId(),
-            entity.getAssetStatusId(),
-            entity.getLocationId(),
-            entity.getOwnerId(),
-            AssetCode.of(entity.getCode()),
-            entity.getName(),
-            entity.getDescription(),
-            entity.getRegistrationDate(),
-            null, // value (si lo manejas después)
-            entity.getCreatedAt(),
-            entity.getUpdatedAt(),
-            entity.getIsActive(), // <-- ahora sí pasamos el campo
-            entity.getVersion()
+                new AssetId(entity.getId()),
+                entity.getCompanyId(),
+                entity.getAssetTypeId(),
+                entity.getSubAssetTypeId(),
+                entity.getOwnershipTypeId(),
+                entity.getAssetStatusId(),
+                entity.getLocationId(),
+                entity.getOwnerId(),
+                AssetCode.of(entity.getCode()),
+                entity.getName(),
+                entity.getDescription(),
+                entity.getRegistrationDate(),
+                null, // value (si lo manejas después)
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                entity.getIsActive(), // <-- ahora sí pasamos el campo
+                entity.getVersion(),
+                entity.getQrCode() // <-- nuevo campo
         );
     }
 }

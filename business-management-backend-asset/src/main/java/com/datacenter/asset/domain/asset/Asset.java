@@ -23,12 +23,14 @@ public final class Asset {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final Boolean isActive;
-    private final Long version; // 1. Nuevo atributo de dominio
+    private final Long version; 
+    private final String qrCode; 
 
     private Asset(AssetId id, UUID companyId, UUID assetTypeId, UUID subAssetTypeId,
-                   UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
-                   AssetCode code, String name, String description, LocalDate registrationDate,
-                   Money value, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isActive, Long version) {
+            UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
+            AssetCode code, String name, String description, LocalDate registrationDate,
+            Money value, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isActive, Long version,
+            String qrCode) {
         if (companyId == null || assetTypeId == null || ownershipTypeId == null || assetStatusId == null
                 || locationId == null || name == null || name.isBlank() || registrationDate == null) {
             throw new InvalidAssetException("Asset required fields are missing");
@@ -50,37 +52,39 @@ public final class Asset {
         this.updatedAt = updatedAt;
         this.isActive = isActive != null ? isActive : true;
         this.version = version;
+        this.qrCode = qrCode;
     }
 
     public static Asset create(UUID companyId, UUID assetTypeId, UUID subAssetTypeId,
-                               UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
-                               String code, String name, String description, LocalDate registrationDate) {
-        // La versión nace en null. JPA sabrá que debe hacer un INSERT.
+            UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
+            String code, String name, String description, LocalDate registrationDate) {
         return new Asset(null, companyId, assetTypeId, subAssetTypeId, ownershipTypeId, assetStatusId,
-                locationId, ownerId, AssetCode.of(code), name, description, registrationDate, null, null, null, true, null);
+                locationId, ownerId, AssetCode.of(code), name, description, registrationDate, null, null, null, true,
+                null, null);
     }
 
     public static Asset restore(AssetId id, UUID companyId, UUID assetTypeId, UUID subAssetTypeId,
-                                UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
-                                AssetCode code, String name, String description, LocalDate registrationDate,
-                                Money value, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isActive, Long version) {
+            UUID ownershipTypeId, UUID assetStatusId, UUID locationId, UUID ownerId,
+            AssetCode code, String name, String description, LocalDate registrationDate,
+            Money value, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isActive, Long version,
+            String qrCode) {
         return new Asset(id, companyId, assetTypeId, subAssetTypeId, ownershipTypeId, assetStatusId,
-                locationId, ownerId, code, name, description, registrationDate, value, createdAt, updatedAt, isActive, version);
+                locationId, ownerId, code, name, description, registrationDate, value, createdAt, updatedAt, isActive,
+                version, qrCode);
     }
 
     public Asset update(UUID companyId, UUID assetTypeId, UUID subAssetTypeId, UUID ownershipTypeId,
-                        UUID assetStatusId, UUID locationId, UUID ownerId, String code, String name,
-                        String description, LocalDate registrationDate) {
-        // Se mantiene la versión actual, JPA la incrementará al guardar
+            UUID assetStatusId, UUID locationId, UUID ownerId, String code, String name,
+            String description, LocalDate registrationDate) {
         return new Asset(id, companyId, assetTypeId, subAssetTypeId, ownershipTypeId, assetStatusId,
                 locationId, ownerId, AssetCode.of(code), name, description, registrationDate, value,
-                createdAt, LocalDateTime.now(), this.isActive, this.version);
+                createdAt, LocalDateTime.now(), this.isActive, this.version, this.qrCode);
     }
 
     public Asset withActiveState(boolean newActiveState) {
         return new Asset(id, companyId, assetTypeId, subAssetTypeId, ownershipTypeId, assetStatusId,
                 locationId, ownerId, code, name, description, registrationDate, value,
-                createdAt, LocalDateTime.now(), newActiveState, this.version);
+                createdAt, LocalDateTime.now(), newActiveState, this.version, this.qrCode);
     }
 
     public AssetId getId() { return id; }
@@ -100,4 +104,5 @@ public final class Asset {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public Boolean getIsActive() { return isActive; }
     public Long getVersion() { return version; }
+    public String getQrCode() { return qrCode; }
 }
