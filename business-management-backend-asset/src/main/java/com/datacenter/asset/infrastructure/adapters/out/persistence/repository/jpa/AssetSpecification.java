@@ -9,7 +9,8 @@ import java.util.UUID;
 
 public class AssetSpecification {
 
-    public static Specification<AssetEntity> withDynamicFilters(UUID typeId, UUID statusId, UUID locationId, String keyword) {
+    public static Specification<AssetEntity> withDynamicFilters(UUID typeId, UUID statusId, UUID locationId,
+            String keyword) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 

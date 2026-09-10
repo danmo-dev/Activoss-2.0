@@ -7,5 +7,6 @@ import java.util.UUID;
 
 public interface AssetLoanJpaRepository extends JpaRepository<AssetLoanEntity, UUID> {
     List<AssetLoanEntity> findByAssetId(UUID assetId);
+
     boolean existsByAssetIdAndStatus(UUID assetId, String status);
 }
