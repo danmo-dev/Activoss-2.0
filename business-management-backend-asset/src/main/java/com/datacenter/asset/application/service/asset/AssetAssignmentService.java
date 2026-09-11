@@ -26,7 +26,7 @@ public class AssetAssignmentService implements AssignAssetUseCase {
         assignment.setStartDate(LocalDateTime.now());
         assignment.setIsActive(true);
         
-        // TODO: Disparar evento para notificar a la persona (correo) - AC-EP02-HU28
+        
         return assignmentRepositoryPort.save(assignment);
     }
 
@@ -35,7 +35,7 @@ public class AssetAssignmentService implements AssignAssetUseCase {
         AssetAssignment assignment = assignmentRepositoryPort.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Asignación no encontrada"));
         
-        // TODO: Lógica de generación de PDF - AC-EP02-HU31
+    
         String mockPdfPath = "/docs/actas/" + assignmentId + ".pdf";
         assignment.acceptAssignment(mockPdfPath);
         

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
-
+@SuppressWarnings("null")
 @Repository
 @RequiredArgsConstructor
 public class AssetAssignmentRepositoryAdapter implements AssetAssignmentRepositoryPort {

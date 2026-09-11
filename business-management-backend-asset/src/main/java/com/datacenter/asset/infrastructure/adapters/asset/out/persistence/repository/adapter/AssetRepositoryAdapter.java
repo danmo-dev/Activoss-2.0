@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("null")
 @Component
 public class AssetRepositoryAdapter implements AssetRepositoryPort {
 

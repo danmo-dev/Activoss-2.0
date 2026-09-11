@@ -1,6 +1,5 @@
 package com.datacenter.asset.infrastructure.adapters.owner.out.persistence.repository.jpa;
 
-import com.datacenter.asset.infrastructure.adapters.owner.out.persistence.entity.*;
 import com.datacenter.asset.infrastructure.adapters.owner.out.persistence.entity.OwnerEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;

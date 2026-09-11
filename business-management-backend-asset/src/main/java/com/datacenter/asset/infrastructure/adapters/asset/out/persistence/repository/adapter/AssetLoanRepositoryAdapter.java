@@ -8,11 +8,13 @@ import com.datacenter.asset.infrastructure.adapters.asset.out.persistence.reposi
 
 import org.springframework.stereotype.Component;
 
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("null")
 @Component
 public class AssetLoanRepositoryAdapter implements AssetLoanRepositoryPort {
 

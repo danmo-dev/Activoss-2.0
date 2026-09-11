@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("null")
 @RestController
 @RequestMapping("/api/v1/sub-asset-types")
 public class SubAssetTypeController {

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
+@SuppressWarnings("null")
 @Component
 public class FormatoActaFiller {
 
