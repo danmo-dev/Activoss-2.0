@@ -1,4 +1,4 @@
-package com.datacenter.asset.infrastructure.adapters.external;
+package com.datacenter.asset.infrastructure.adapters.external.emailnotification;
 
 import com.datacenter.asset.domain.assignment.AssetAssignment;
 import com.datacenter.asset.domain.ports.external.out.EmailNotificationPort;
