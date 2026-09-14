@@ -7,5 +7,5 @@ import com.datacenter.asset.infrastructure.adapters.asset.out.persistence.entity
 import java.util.UUID;
 
 public interface AssetRelationshipTypeJpaRepository extends JpaRepository<AssetRelationshipTypeEntity, UUID> {
-
+    boolean existsByCode(String code);
 }

@@ -45,4 +45,9 @@ public class PersonRepositoryAdapter implements PersonRepositoryPort {
     public boolean existsByDocumentNumber(String documentNumber) {
         return jpaRepository.existsByDocumentNumber(documentNumber);
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        jpaRepository.deleteById(id);
+    }
 }

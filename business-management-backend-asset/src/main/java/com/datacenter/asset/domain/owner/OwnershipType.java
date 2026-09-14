@@ -4,8 +4,12 @@ import java.util.UUID;
 
 public class OwnershipType {
     private final UUID id;
-    private final String code;
-    private final String name;
+    private String code;
+    private String name;
+
+    public OwnershipType() {
+        this.id = UUID.randomUUID();
+    }
 
     public OwnershipType(UUID id, String code, String name) {
         this.id = id != null ? id : UUID.randomUUID();
@@ -16,4 +20,7 @@ public class OwnershipType {
     public UUID getId() { return id; }
     public String getCode() { return code; }
     public String getName() { return name; }
+
+    public void setCode(String code) { this.code = code; }
+    public void setName(String name) { this.name = name; }
 }

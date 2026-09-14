@@ -10,7 +10,6 @@ public class LocationPersistenceMapper {
 
     public LocationEntity toEntity(Location domain) {
         if (domain == null) return null;
-
         LocationEntity entity = new LocationEntity();
         entity.setId(domain.getId());
         entity.setParentLocationId(domain.getParentLocationId());
@@ -21,12 +20,11 @@ public class LocationPersistenceMapper {
 
     public Location toDomain(LocationEntity entity) {
         if (entity == null) return null;
-
-        return new Location(
-                entity.getId(),
-                entity.getParentLocationId(),
-                entity.getCode(),
-                entity.getName()
-        );
+        Location domain = new Location();
+        domain.setId(entity.getId());
+        domain.setParentLocationId(entity.getParentLocationId());
+        domain.setCode(entity.getCode());
+        domain.setName(entity.getName());
+        return domain;
     }
 }

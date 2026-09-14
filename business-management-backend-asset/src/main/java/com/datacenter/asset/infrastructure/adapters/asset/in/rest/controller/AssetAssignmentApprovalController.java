@@ -1,6 +1,6 @@
 package com.datacenter.asset.infrastructure.adapters.asset.in.rest.controller;
 
-import com.datacenter.asset.application.service.external.AssetAssignmentApprovalService;
+import com.datacenter.asset.application.service.external.pdfgenerator.AssetAssignmentApprovalService;
 import com.datacenter.asset.domain.assignment.AssetAssignment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -8,4 +8,8 @@ public interface ManagePersonUseCase {
     Person createPerson(Person person);
     Person getPersonById(UUID id);
     List<Person> getAllPersons();
+    Person update(UUID id, Person person); // <-- Nuevo
+    Person activate(UUID id);              // <-- Nuevo
+    Person deactivate(UUID id);            // <-- Nuevo
+    void delete(UUID id);
 }

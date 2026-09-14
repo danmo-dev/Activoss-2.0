@@ -68,4 +68,10 @@ public class AssetTypeRepositoryAdapter
  
         return repository.existsByCode(code);
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        repository.deleteById(id);
+    }
+
 }

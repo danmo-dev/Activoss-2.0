@@ -65,4 +65,10 @@ public class AssetTypeController {
         AssetType updated = useCase.deactivate(id);
         return ResponseEntity.ok(mapper.toResponse(updated));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        useCase.delete(id);
+        return ResponseEntity.noContent().build(); // Retorna 204 No Content cuando se elimina con éxito
+    }
 }

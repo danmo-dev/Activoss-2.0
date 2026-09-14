@@ -73,4 +73,14 @@ public class SubAssetTypeService implements ManageSubAssetTypeUseCase {
         subAssetType.setActive(false);
         return repositoryPort.save(subAssetType);
     }
+
+    @Override
+    public void delete(UUID id) {
+        // Primero verificamos que exista, si no, lanzamos la excepción
+        SubAssetType existing = repositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sub asset type not found with id: " + id));
+        System.out.println("Eliminando estado con código: " + existing.getCode());
+
+        repositoryPort.deleteById(id);
+    }
 }

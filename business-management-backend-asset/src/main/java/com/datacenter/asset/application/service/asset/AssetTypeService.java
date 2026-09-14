@@ -68,4 +68,14 @@ public class AssetTypeService implements ManageAssetTypeUseCase {
         assetType.setActive(false);
         return repositoryPort.save(assetType);
     }
+
+    @Override
+    public void delete(UUID id) {
+        // Primero verificamos que exista, si no, lanzamos la excepción
+        AssetType existing = repositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
+        System.out.println("Eliminando estado con código: " + existing.getCode());
+
+        repositoryPort.deleteById(id);
+    }
 }

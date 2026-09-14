@@ -32,4 +32,27 @@ public class CompanyController {
     public ResponseEntity<Company> getCompanyById(@PathVariable UUID id) {
         return ResponseEntity.ok(manageCompanyUseCase.getCompanyById(id));
     }
+
+    // --- NUEVO ENDPOINT PARA EDITAR ---
+    @PutMapping("/{id}")
+    public ResponseEntity<Company> updateCompany(@PathVariable UUID id, @RequestBody Company company) {
+        return ResponseEntity.ok(manageCompanyUseCase.update(id, company));
+    }
+
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<Company> activate(@PathVariable UUID id) {
+        return ResponseEntity.ok(manageCompanyUseCase.activate(id));
+    }
+
+    // Typo corregido (desactivate -> deactivate)
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<Company> deactivate(@PathVariable UUID id) {
+        return ResponseEntity.ok(manageCompanyUseCase.deactivate(id)); 
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        manageCompanyUseCase.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

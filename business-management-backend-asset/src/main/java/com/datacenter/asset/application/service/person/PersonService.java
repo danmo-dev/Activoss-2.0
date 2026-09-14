@@ -29,19 +29,9 @@ public class PersonService implements ManagePersonUseCase {
             throw new IllegalArgumentException("La empresa asociada no existe.");
         }
 
-        // 🔎 Aquí agregamos lo necesario:
         if (person.getCreatedAt() == null) {
-            person = new Person(
-                person.getId(),
-                person.getCompanyId(),
-                person.getDocumentNumber(),
-                person.getFirstName(),
-                person.getLastName(),
-                person.getEmail(),
-                person.getDepartment(),
-                person.isActive(),
-                LocalDateTime.now()   // asigna fecha actual si viene nulo
-            );
+            person.setCreatedAt(LocalDateTime.now());
+            person.setActive(true);
         }
 
         return personRepositoryPort.save(person);
@@ -56,5 +46,62 @@ public class PersonService implements ManagePersonUseCase {
     @Override
     public List<Person> getAllPersons() {
         return personRepositoryPort.findAll();
+    }
+
+    // --- NUEVO: Editar ---
+    @Override
+    public Person update(UUID id, Person updatedData) {
+        Person existing = personRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + id));
+
+        // Validar si cambia el número de documento
+        if (!existing.getDocumentNumber().equals(updatedData.getDocumentNumber()) &&
+            personRepositoryPort.existsByDocumentNumber(updatedData.getDocumentNumber())) {
+            throw new IllegalArgumentException("Ya existe otra persona con este documento.");
+        }
+
+        // Validar si cambia la empresa
+        if (!existing.getCompanyId().equals(updatedData.getCompanyId())) {
+            if (companyRepositoryPort.findById(updatedData.getCompanyId()).isEmpty()) {
+                throw new IllegalArgumentException("La empresa asociada no existe.");
+            }
+        }
+
+        // Actualizamos los datos
+        existing.setCompanyId(updatedData.getCompanyId());
+        existing.setDocumentNumber(updatedData.getDocumentNumber());
+        existing.setFirstName(updatedData.getFirstName());
+        existing.setLastName(updatedData.getLastName());
+        existing.setEmail(updatedData.getEmail());
+        existing.setDepartment(updatedData.getDepartment());
+
+        return personRepositoryPort.save(existing);
+    }
+
+    // --- NUEVO: Activar ---
+    @Override
+    public Person activate(UUID id) {
+        Person person = personRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + id));
+        person.setActive(true);
+        return personRepositoryPort.save(person);
+    }
+
+    // --- NUEVO: Desactivar ---
+    @Override
+    public Person deactivate(UUID id) {
+        Person person = personRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + id));
+        person.setActive(false);
+        return personRepositoryPort.save(person);
+    }
+
+    // --- NUEVO: Eliminar ---
+    @Override
+    public void delete(UUID id) {
+        Person existing = personRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + id));
+                System.out.println("Eliminando estado con código: " + existing.getDocumentNumber());
+        personRepositoryPort.deleteById(id);
     }
 }

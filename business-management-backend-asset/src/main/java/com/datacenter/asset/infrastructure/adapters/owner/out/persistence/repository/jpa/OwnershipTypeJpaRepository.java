@@ -7,5 +7,5 @@ import com.datacenter.asset.infrastructure.adapters.owner.out.persistence.entity
 import java.util.UUID;
 
 public interface OwnershipTypeJpaRepository extends JpaRepository<OwnershipTypeEntity, UUID> {
-
+    boolean existsByCode(String code);
 }

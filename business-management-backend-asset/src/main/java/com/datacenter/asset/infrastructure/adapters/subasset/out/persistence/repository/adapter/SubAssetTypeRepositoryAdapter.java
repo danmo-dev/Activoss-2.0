@@ -77,4 +77,10 @@ public class SubAssetTypeRepositoryAdapter
  
         return repository.existsByCode(code);
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        // Delegamos directamente al repositorio de JPA
+        repository.deleteById(id);
+    }
 }

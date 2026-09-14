@@ -48,4 +48,11 @@ public class CompanyRepositoryAdapter implements CompanyRepositoryPort {
     private Company mapToDomain(CompanyEntity entity) {
         return new Company(entity.getId(), entity.getTaxId(), entity.getName(), entity.getCompanyType(), entity.isActive(), entity.getCreatedAt());
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        repository.deleteById(id);
+    }
+
+    
 }

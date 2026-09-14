@@ -12,4 +12,5 @@ public interface ManageAssetTypeUseCase {
     AssetType update(UUID id, String code, String name, String description);
     AssetType activate(UUID id);
     AssetType deactivate(UUID id);
+    void delete(UUID id);
 }

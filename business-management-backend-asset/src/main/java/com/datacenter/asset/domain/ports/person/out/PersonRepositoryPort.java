@@ -10,4 +10,5 @@ public interface PersonRepositoryPort {
     Optional<Person> findById(UUID id);
     List<Person> findAll();
     boolean existsByDocumentNumber(String documentNumber);
+    void deleteById(UUID id);
 }

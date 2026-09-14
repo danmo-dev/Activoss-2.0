@@ -2,6 +2,7 @@ package com.datacenter.asset.infrastructure.adapters.location.in.rest.mapper;
 
 import com.datacenter.asset.domain.location.Location;
 import com.datacenter.asset.infrastructure.adapters.location.in.rest.dto.request.CreateLocationRequest;
+import com.datacenter.asset.infrastructure.adapters.location.in.rest.dto.request.UpdateLocationRequest;
 import com.datacenter.asset.infrastructure.adapters.location.in.rest.dto.response.LocationResponse;
 
 import org.springframework.stereotype.Component;
@@ -11,7 +12,16 @@ public class LocationRestMapper {
 
     public Location toDomain(CreateLocationRequest request) {
         if (request == null) return null;
+        Location domain = new Location();
+        domain.setParentLocationId(request.getParentLocationId());
+        domain.setCode(request.getCode());
+        domain.setName(request.getName());
+        return domain;
+    }
 
+    // NUEVO MÉTODO PARA EL UPDATE DTO
+    public Location toDomain(UpdateLocationRequest request) {
+        if (request == null) return null;
         Location domain = new Location();
         domain.setParentLocationId(request.getParentLocationId());
         domain.setCode(request.getCode());
@@ -21,7 +31,6 @@ public class LocationRestMapper {
 
     public LocationResponse toResponse(Location domain) {
         if (domain == null) return null;
-
         LocationResponse response = new LocationResponse();
         response.setId(domain.getId());
         response.setParentLocationId(domain.getParentLocationId());

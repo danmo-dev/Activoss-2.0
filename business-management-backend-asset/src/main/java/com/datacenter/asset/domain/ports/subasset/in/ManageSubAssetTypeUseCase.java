@@ -13,4 +13,5 @@ public interface ManageSubAssetTypeUseCase {
     SubAssetType update(UUID id, String code, String name, String description);
     SubAssetType activate(UUID id);
     SubAssetType desactivate(UUID id);
+    void delete(UUID id);
 }

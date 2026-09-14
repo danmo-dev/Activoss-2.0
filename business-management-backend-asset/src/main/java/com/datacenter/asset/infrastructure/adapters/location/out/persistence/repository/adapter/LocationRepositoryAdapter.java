@@ -6,8 +6,10 @@ import com.datacenter.asset.infrastructure.adapters.location.out.persistence.map
 import com.datacenter.asset.infrastructure.adapters.location.out.persistence.repository.jpa.LocationJpaRepository;
 
 import org.springframework.stereotype.Component;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("null")
 @Component
@@ -32,7 +34,19 @@ public class LocationRepositoryAdapter implements LocationRepositoryPort {
     }
 
     @Override
+    public List<Location> findAll() {
+        return repository.findAll().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public boolean existsByCode(String code) {
         return repository.existsByCode(code);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        repository.deleteById(id);
     }
 }

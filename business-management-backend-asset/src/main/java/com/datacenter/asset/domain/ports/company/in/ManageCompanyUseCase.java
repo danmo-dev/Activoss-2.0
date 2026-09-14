@@ -8,4 +8,8 @@ public interface ManageCompanyUseCase {
     Company createCompany(Company company);
     Company getCompanyById(UUID id);
     List<Company> getAllCompanies();
+    Company update(UUID id, Company company);
+    Company activate(UUID id);
+    Company deactivate(UUID id);
+    void delete(UUID id);
 }

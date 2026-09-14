@@ -14,7 +14,6 @@ public class Person {
     private boolean isActive;
     private LocalDateTime createdAt;
 
-    // Constructores, Getters y Setters
     public Person(UUID id, UUID companyId, String documentNumber, String firstName, String lastName, String email, String department, boolean isActive, LocalDateTime createdAt) {
         this.id = id;
         this.companyId = companyId;
@@ -27,6 +26,7 @@ public class Person {
         this.createdAt = createdAt;
     }
 
+    // Getters
     public UUID getId() { return id; }
     public UUID getCompanyId() { return companyId; }
     public String getDocumentNumber() { return documentNumber; }
@@ -36,4 +36,15 @@ public class Person {
     public String getDepartment() { return department; }
     public boolean isActive() { return isActive; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    // Setters (Necesarios para editar, activar y desactivar)
+    public void setId(UUID id) { this.id = id; }
+    public void setCompanyId(UUID companyId) { this.companyId = companyId; }
+    public void setDocumentNumber(String documentNumber) { this.documentNumber = documentNumber; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public void setEmail(String email) { this.email = email; }
+    public void setDepartment(String department) { this.department = department; }
+    public void setActive(boolean active) { isActive = active; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

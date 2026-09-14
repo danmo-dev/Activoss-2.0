@@ -1,4 +1,4 @@
-package com.datacenter.asset.application.service.external;
+package com.datacenter.asset.application.service.external.pdfgenerator;
 
 import com.datacenter.asset.domain.assignment.AssetAssignment;
 import com.datacenter.asset.domain.ports.asset.out.AssetAssignmentRepositoryPort;

@@ -10,4 +10,5 @@ public interface CompanyRepositoryPort {
     Optional<Company> findById(UUID id);
     List<Company> findAll();
     boolean existsByTaxId(String taxId);
+    void deleteById(UUID id);
 }

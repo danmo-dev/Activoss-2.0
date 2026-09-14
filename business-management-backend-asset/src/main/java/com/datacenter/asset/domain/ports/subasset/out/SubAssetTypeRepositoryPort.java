@@ -19,4 +19,6 @@ public interface SubAssetTypeRepositoryPort {
     Optional<SubAssetType> findByCode(String code);
 
     boolean existsByCode(String code);
+
+    void deleteById(UUID id);
 }

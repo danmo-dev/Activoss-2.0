@@ -37,4 +37,49 @@ public class CompanyService implements ManageCompanyUseCase {
     public List<Company> getAllCompanies() {
         return companyRepositoryPort.findAll();
     }
+
+    // --- NUEVO MÉTODO PARA EDITAR ---
+    @Override
+    public Company update(UUID id, Company updatedData) {
+        Company existing = companyRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada con id: " + id));
+
+        // Validamos si el usuario quiere cambiar el NIT y comprobamos que el nuevo no exista ya
+        if (!existing.getTaxId().equals(updatedData.getTaxId()) && 
+            companyRepositoryPort.existsByTaxId(updatedData.getTaxId())) {
+            throw new IllegalArgumentException("Ya existe otra empresa con este NIT/TaxID.");
+        }
+
+        // Actualizamos solo los datos permitidos
+        existing.setTaxId(updatedData.getTaxId());
+        existing.setName(updatedData.getName());
+        existing.setCompanyType(updatedData.getCompanyType());
+        
+        // No actualizamos ni el ID, ni isActive, ni createdAt aquí
+        return companyRepositoryPort.save(existing);
+    }
+
+    @Override
+    public Company activate(UUID id) {
+        Company company = companyRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Company not found with id: " + id));
+        company.setActive(true);
+        return companyRepositoryPort.save(company);
+    }
+
+    @Override
+    public Company deactivate(UUID id) {
+        Company company = companyRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Company not found with id: " + id));
+        company.setActive(false);
+        return companyRepositoryPort.save(company);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        Company existing = companyRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Company not found with id: " + id));
+        System.out.println("Eliminando estado con código: " + existing.getTaxId());
+        companyRepositoryPort.deleteById(id);
+    }
 }

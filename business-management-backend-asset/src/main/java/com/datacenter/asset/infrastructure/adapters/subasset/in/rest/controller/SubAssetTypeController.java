@@ -87,7 +87,7 @@ public class SubAssetTypeController {
         return ResponseEntity.ok(mapper.toResponse(updated));
     }
 
-    @PatchMapping("/{id}/desactivate")
+    @PatchMapping("/{id}/deactivate")
     public ResponseEntity<SubAssetTypeResponse> desactivate(@PathVariable UUID id) {
         SubAssetType updated = useCase.desactivate(id);
         return ResponseEntity.ok(mapper.toResponse(updated));
@@ -121,5 +121,11 @@ public class SubAssetTypeController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        useCase.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
