@@ -1,53 +1,38 @@
 package com.datacenter.asset.application.service.owner;
 
 import com.datacenter.asset.domain.models.owner.OwnershipType;
-import com.datacenter.asset.domain.ports.in.owner.ManageOwnershipTypesUseCase;
 import com.datacenter.asset.domain.ports.out.owner.OwnershipTypeRepositoryPort;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class OwnershipTypeService implements ManageOwnershipTypesUseCase {
+@RequiredArgsConstructor
+public class OwnershipTypeService {
 
     private final OwnershipTypeRepositoryPort repositoryPort;
 
-    public OwnershipTypeService(OwnershipTypeRepositoryPort repositoryPort) {
-        this.repositoryPort = repositoryPort;
-    }
-
-    @Override
-    public OwnershipType createOwnershipType(String code, String name) {
+    public OwnershipType create(String code, String name) {
         if (repositoryPort.existsByCode(code)) {
             throw new IllegalArgumentException("Ya existe un tipo de propiedad con el código: " + code);
         }
-
-        OwnershipType ownershipType = new OwnershipType(
-                null,
-                code,
-                name
-        );
-
+        OwnershipType ownershipType = new OwnershipType(null, code, name);
         return repositoryPort.save(ownershipType);
     }
 
-    @Override
-    public OwnershipType getById(UUID id) {
+    public OwnershipType findById(UUID id) {
         return repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tipo de propiedad no encontrado con id: " + id));
     }
 
-    @Override
-    public List<OwnershipType> getAllOwnershipTypes() {
+    public List<OwnershipType> findAll() {
         return repositoryPort.findAll();
     }
 
-    @Override
     public OwnershipType update(UUID id, String code, String name) {
-        OwnershipType existing = repositoryPort.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tipo de propiedad no encontrado con id: " + id));
+        OwnershipType existing = findById(id);
 
         if (!existing.getCode().equals(code) && repositoryPort.existsByCode(code)) {
             throw new IllegalArgumentException("Ya existe otro tipo de propiedad con el código: " + code);
@@ -59,11 +44,9 @@ public class OwnershipTypeService implements ManageOwnershipTypesUseCase {
         return repositoryPort.save(existing);
     }
 
-    @Override
     public void delete(UUID id) {
-        OwnershipType existing = repositoryPort.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tipo de propiedad no encontrado con id: " + id));
-                System.out.println("Eliminando estado con código: " + existing.getCode());
+        OwnershipType existing = findById(id);
+        System.out.println("Eliminando tipo de propiedad con código: " + existing.getCode());
         repositoryPort.deleteById(id);
     }
 }

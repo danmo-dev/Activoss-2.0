@@ -3,11 +3,9 @@ package com.datacenter.asset.application.service.asset;
 import com.datacenter.asset.domain.models.asset.Asset;
 import com.datacenter.asset.domain.models.asset.AssetHistory;
 import com.datacenter.asset.domain.models.asset.AssetId;
-import com.datacenter.asset.domain.ports.in.asset.ManageAssetLifecycleUseCase;
 import com.datacenter.asset.domain.ports.out.asset.AssetAssignmentRepositoryPort;
 import com.datacenter.asset.domain.ports.out.asset.AssetHistoryRepositoryPort;
 import com.datacenter.asset.domain.ports.out.asset.AssetRepositoryPort;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,35 +16,31 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AssetLifecycleService implements ManageAssetLifecycleUseCase {
+public class AssetLifecycleService {
 
     private final AssetRepositoryPort assetRepository;
     private final AssetHistoryRepositoryPort historyRepository;
     private final AssetAssignmentRepositoryPort assignmentRepository;
 
-    @Override
     @Transactional
-    public void deactivateAsset(UUID assetId, String reason, String executedBy) {
+    public void deactivate(UUID assetId, String reason, String executedBy) {
         changeAssetState(assetId, false, "INACTIVACION", reason, executedBy);
     }
 
-    @Override
     @Transactional
-    public void reactivateAsset(UUID assetId, String reason, String executedBy) {
+    public void reactivate(UUID assetId, String reason, String executedBy) {
         changeAssetState(assetId, true, "REACTIVACION", reason, executedBy);
     }
 
-    @Override
     @Transactional
-    public void decommissionAsset(UUID assetId, String reason, String executedBy) {
+    public void decommission(UUID assetId, String reason, String executedBy) {
         if (assignmentRepository.hasActiveAssignment(assetId)) {
             throw new IllegalStateException("No se puede dar de baja un activo que tiene una asignación activa (RF-09).");
         }
         changeAssetState(assetId, false, "BAJA", reason, executedBy);
     }
 
-    @Override
-    public List<AssetHistory> getAssetHistory(UUID assetId) {
+    public List<AssetHistory> getHistory(UUID assetId) {
         return historyRepository.findByAssetId(assetId);
     }
 
@@ -54,11 +48,9 @@ public class AssetLifecycleService implements ManageAssetLifecycleUseCase {
         Asset asset = assetRepository.findById(new AssetId(assetId))
                 .orElseThrow(() -> new IllegalArgumentException("Activo no encontrado"));
 
-        // Generar nueva instancia respetando inmutabilidad y persistir
         Asset updatedAsset = asset.withActiveState(isActive);
         assetRepository.save(updatedAsset);
 
-        // Registrar trazabilidad obligatoria (RF-07)
         var history = AssetHistory.builder()
                 .assetId(assetId)
                 .eventDate(LocalDateTime.now())
@@ -69,5 +61,4 @@ public class AssetLifecycleService implements ManageAssetLifecycleUseCase {
 
         historyRepository.save(history);
     }
-
 }

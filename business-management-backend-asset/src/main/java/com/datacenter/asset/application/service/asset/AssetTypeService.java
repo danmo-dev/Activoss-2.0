@@ -1,24 +1,19 @@
 package com.datacenter.asset.application.service.asset;
 
 import com.datacenter.asset.domain.models.configuration.AssetType;
-import com.datacenter.asset.domain.ports.in.asset.ManageAssetTypeUseCase;
 import com.datacenter.asset.domain.ports.out.asset.AssetTypeRepositoryPort;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class AssetTypeService implements ManageAssetTypeUseCase {
+@RequiredArgsConstructor
+public class AssetTypeService {
 
     private final AssetTypeRepositoryPort repositoryPort;
 
-    public AssetTypeService(AssetTypeRepositoryPort repositoryPort) {
-        this.repositoryPort = repositoryPort;
-    }
-
-    @Override
     public AssetType create(AssetType assetType) {
         if (repositoryPort.existsByCode(assetType.getCode())) {
             throw new RuntimeException("Asset type already exists with code: " + assetType.getCode());
@@ -26,18 +21,15 @@ public class AssetTypeService implements ManageAssetTypeUseCase {
         return repositoryPort.save(assetType);
     }
 
-    @Override
     public List<AssetType> findAll() {
         return repositoryPort.findAll();
     }
 
-    @Override
     public AssetType findById(UUID id) {
         return repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
     }
 
-    @Override
     public AssetType update(UUID id, String code, String name, String description) {
         AssetType existing = repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
@@ -53,7 +45,6 @@ public class AssetTypeService implements ManageAssetTypeUseCase {
         return repositoryPort.save(existing);
     }
 
-    @Override
     public AssetType activate(UUID id) {
         AssetType assetType = repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
@@ -61,7 +52,6 @@ public class AssetTypeService implements ManageAssetTypeUseCase {
         return repositoryPort.save(assetType);
     }
 
-    @Override
     public AssetType deactivate(UUID id) {
         AssetType assetType = repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
@@ -69,13 +59,10 @@ public class AssetTypeService implements ManageAssetTypeUseCase {
         return repositoryPort.save(assetType);
     }
 
-    @Override
     public void delete(UUID id) {
-        // Primero verificamos que exista, si no, lanzamos la excepción
         AssetType existing = repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Asset type not found with id: " + id));
-        System.out.println("Eliminando estado con código: " + existing.getCode());
-
+        System.out.println("Eliminando tipo de activo con código: " + existing.getCode());
         repositoryPort.deleteById(id);
     }
 }

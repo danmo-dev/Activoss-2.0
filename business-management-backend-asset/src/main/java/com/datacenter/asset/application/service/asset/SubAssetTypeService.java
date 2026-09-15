@@ -1,24 +1,19 @@
 package com.datacenter.asset.application.service.asset;
 
 import com.datacenter.asset.domain.models.configuration.SubAssetType;
-import com.datacenter.asset.domain.ports.in.subasset.ManageSubAssetTypeUseCase;
 import com.datacenter.asset.domain.ports.out.subassettype.SubAssetTypeRepositoryPort;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class SubAssetTypeService implements ManageSubAssetTypeUseCase {
+@RequiredArgsConstructor
+public class SubAssetTypeService {
 
     private final SubAssetTypeRepositoryPort repositoryPort;
 
-    public SubAssetTypeService(SubAssetTypeRepositoryPort repositoryPort) {
-        this.repositoryPort = repositoryPort;
-    }
-
-    @Override
     public SubAssetType create(SubAssetType subAssetType) {
         if (repositoryPort.existsByCode(subAssetType.getCode())) {
             throw new RuntimeException("Sub asset type already exists with code: " + subAssetType.getCode());
@@ -26,23 +21,19 @@ public class SubAssetTypeService implements ManageSubAssetTypeUseCase {
         return repositoryPort.save(subAssetType);
     }
 
-    @Override
     public List<SubAssetType> findAll() {
         return repositoryPort.findAll();
     }
 
-    @Override
     public List<SubAssetType> findByAssetTypeId(UUID assetTypeId) {
         return repositoryPort.findByAssetTypeId(assetTypeId);
     }
 
-    @Override
     public SubAssetType findById(UUID id) {
         return repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sub asset type not found with id: " + id));
     }
 
-    @Override
     public SubAssetType update(UUID id, String code, String name, String description) {
         SubAssetType existing = repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sub asset type not found with id: " + id));
@@ -58,7 +49,6 @@ public class SubAssetTypeService implements ManageSubAssetTypeUseCase {
         return repositoryPort.save(existing);
     }
 
-    @Override
     public SubAssetType activate(UUID id) {
         SubAssetType subAssetType = repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sub asset type not found with id: " + id));
@@ -66,21 +56,17 @@ public class SubAssetTypeService implements ManageSubAssetTypeUseCase {
         return repositoryPort.save(subAssetType);
     }
 
-    @Override
-    public SubAssetType desactivate(UUID id) {
+    public SubAssetType deactivate(UUID id) {
         SubAssetType subAssetType = repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sub asset type not found with id: " + id));
         subAssetType.setActive(false);
         return repositoryPort.save(subAssetType);
     }
 
-    @Override
     public void delete(UUID id) {
-        // Primero verificamos que exista, si no, lanzamos la excepción
         SubAssetType existing = repositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sub asset type not found with id: " + id));
-        System.out.println("Eliminando estado con código: " + existing.getCode());
-
+        System.out.println("Eliminando sub asset type con código: " + existing.getCode());
         repositoryPort.deleteById(id);
     }
 }

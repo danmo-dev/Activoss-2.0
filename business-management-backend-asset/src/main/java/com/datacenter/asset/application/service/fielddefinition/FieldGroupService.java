@@ -1,50 +1,40 @@
 package com.datacenter.asset.application.service.fielddefinition;
 
 import com.datacenter.asset.domain.models.fieldgroup.FieldGroup;
-import com.datacenter.asset.domain.ports.in.fielddefinition.FieldGroupUseCase;
 import com.datacenter.asset.domain.ports.out.fielddefinition.FieldGroupRepositoryPort;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class FieldGroupService implements FieldGroupUseCase {
+@RequiredArgsConstructor
+public class FieldGroupService {
 
     private final FieldGroupRepositoryPort repository;
 
-    public FieldGroupService(FieldGroupRepositoryPort repository) {
-        this.repository = repository;
-    }
-
-    @Override
     public FieldGroup create(FieldGroup fieldGroup) {
         fieldGroup.setId(UUID.randomUUID());
         fieldGroup.setActive(true);
         return repository.save(fieldGroup);
     }
 
-    @Override
     public List<FieldGroup> findAll() {
         return repository.findAll();
     }
 
-    @Override
     public FieldGroup findById(UUID id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Field group not found: " + id));
     }
 
-    @Override
     public List<FieldGroup> findBySubAssetTypeId(UUID subAssetTypeId) {
         return repository.findBySubAssetTypeId(subAssetTypeId);
     }
 
-    @Override
     public FieldGroup update(UUID id, String name, Integer displayOrder, UUID subAssetTypeId) {
-        FieldGroup fieldGroup = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Field group not found: " + id));
+        FieldGroup fieldGroup = findById(id);
 
         fieldGroup.setName(name);
         fieldGroup.setDisplayOrder(displayOrder);
@@ -53,28 +43,20 @@ public class FieldGroupService implements FieldGroupUseCase {
         return repository.update(fieldGroup);
     }
 
-    @Override
     public void activate(UUID id) {
-        FieldGroup fieldGroup = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Field group not found: " + id));
+        FieldGroup fieldGroup = findById(id);
         fieldGroup.setActive(true);
         repository.update(fieldGroup);
     }
 
-    @Override
     public void deactivate(UUID id) {
-        FieldGroup fieldGroup = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Field group not found: " + id));
+        FieldGroup fieldGroup = findById(id);
         fieldGroup.setActive(false);
         repository.update(fieldGroup);
     }
 
-    @Override
     public void delete(UUID id) {
-        // Verificamos que exista antes de eliminar
-        FieldGroup fieldGroup = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Field group not found: " + id));
-        
+        FieldGroup fieldGroup = findById(id);
         repository.deleteById(id);
     }
 }
