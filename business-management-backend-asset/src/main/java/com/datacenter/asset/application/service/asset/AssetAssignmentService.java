@@ -1,9 +1,9 @@
 package com.datacenter.asset.application.service.asset;
 
-import com.datacenter.asset.domain.assignment.AssetAssignment;
-import com.datacenter.asset.domain.assignment.AssignmentState;
-import com.datacenter.asset.domain.ports.asset.in.AssignAssetUseCase;
-import com.datacenter.asset.domain.ports.asset.out.AssetAssignmentRepositoryPort;
+import com.datacenter.asset.domain.models.assignment.AssetAssignment;
+import com.datacenter.asset.domain.models.assignment.AssignmentState;
+import com.datacenter.asset.domain.ports.in.asset.AssignAssetUseCase;
+import com.datacenter.asset.domain.ports.out.asset.AssetAssignmentRepositoryPort;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

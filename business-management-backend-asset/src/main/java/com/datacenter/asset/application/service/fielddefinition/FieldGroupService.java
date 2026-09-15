@@ -1,8 +1,8 @@
 package com.datacenter.asset.application.service.fielddefinition;
 
-import com.datacenter.asset.domain.fieldgroup.FieldGroup;
-import com.datacenter.asset.domain.ports.fieldDefinition.in.FieldGroupUseCase;
-import com.datacenter.asset.domain.ports.fieldDefinition.out.FieldGroupRepositoryPort;
+import com.datacenter.asset.domain.models.fieldgroup.FieldGroup;
+import com.datacenter.asset.domain.ports.in.fielddefinition.FieldGroupUseCase;
+import com.datacenter.asset.domain.ports.out.fielddefinition.FieldGroupRepositoryPort;
 
 import org.springframework.stereotype.Service;
 
@@ -20,6 +20,7 @@ public class FieldGroupService implements FieldGroupUseCase {
 
     @Override
     public FieldGroup create(FieldGroup fieldGroup) {
+        fieldGroup.setId(UUID.randomUUID());
         fieldGroup.setActive(true);
         return repository.save(fieldGroup);
     }
@@ -66,5 +67,14 @@ public class FieldGroupService implements FieldGroupUseCase {
                 .orElseThrow(() -> new RuntimeException("Field group not found: " + id));
         fieldGroup.setActive(false);
         repository.update(fieldGroup);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        // Verificamos que exista antes de eliminar
+        FieldGroup fieldGroup = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Field group not found: " + id));
+        
+        repository.deleteById(id);
     }
 }

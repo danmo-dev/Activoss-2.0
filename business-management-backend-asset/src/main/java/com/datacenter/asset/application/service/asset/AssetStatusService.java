@@ -1,8 +1,9 @@
 package com.datacenter.asset.application.service.asset;
 
-import com.datacenter.asset.domain.configuration.AssetStatus;
-import com.datacenter.asset.domain.ports.asset.in.ManageAssetStatusesUseCase;
-import com.datacenter.asset.domain.ports.asset.out.AssetStatusRepositoryPort;
+import com.datacenter.asset.domain.models.configuration.AssetStatus;
+import com.datacenter.asset.domain.ports.in.asset.ManageAssetStatusesUseCase;
+import com.datacenter.asset.domain.ports.out.asset.AssetStatusRepositoryPort;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -1,9 +1,9 @@
 package com.datacenter.asset.application.service.asset;
 
-import com.datacenter.asset.domain.loan.AssetLoan;
-import com.datacenter.asset.domain.loan.LoanStatus;
-import com.datacenter.asset.domain.ports.asset.in.ManageAssetLoanUseCase;
-import com.datacenter.asset.domain.ports.asset.out.AssetLoanRepositoryPort;
+import com.datacenter.asset.domain.models.loan.AssetLoan;
+import com.datacenter.asset.domain.models.loan.LoanStatus;
+import com.datacenter.asset.domain.ports.in.asset.ManageAssetLoanUseCase;
+import com.datacenter.asset.domain.ports.out.asset.AssetLoanRepositoryPort;
 
 import org.springframework.stereotype.Service;
 

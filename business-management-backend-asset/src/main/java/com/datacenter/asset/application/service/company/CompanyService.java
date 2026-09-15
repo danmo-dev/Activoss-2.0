@@ -1,8 +1,8 @@
 package com.datacenter.asset.application.service.company;
 
-import com.datacenter.asset.domain.company.Company;
-import com.datacenter.asset.domain.ports.company.in.ManageCompanyUseCase;
-import com.datacenter.asset.domain.ports.company.out.CompanyRepositoryPort;
+import com.datacenter.asset.domain.models.company.Company;
+import com.datacenter.asset.domain.ports.in.company.ManageCompanyUseCase;
+import com.datacenter.asset.domain.ports.out.company.CompanyRepositoryPort;
 
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;

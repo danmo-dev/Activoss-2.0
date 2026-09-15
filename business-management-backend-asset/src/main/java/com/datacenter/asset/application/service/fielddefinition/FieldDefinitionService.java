@@ -1,8 +1,8 @@
 package com.datacenter.asset.application.service.fielddefinition;
 
-import com.datacenter.asset.domain.fielddefinition.FieldDefinition;
-import com.datacenter.asset.domain.ports.fieldDefinition.in.FieldDefinitionUseCase;
-import com.datacenter.asset.domain.ports.fieldDefinition.out.FieldDefinitionRepositoryPort;
+import com.datacenter.asset.domain.models.fielddefinition.FieldDefinition;
+import com.datacenter.asset.domain.ports.in.fielddefinition.FieldDefinitionUseCase;
+import com.datacenter.asset.domain.ports.out.fielddefinition.FieldDefinitionRepositoryPort;
 
 import org.springframework.stereotype.Service;
 

@@ -1,9 +1,9 @@
 package com.datacenter.asset.application.service.person;
 
-import com.datacenter.asset.domain.person.Person;
-import com.datacenter.asset.domain.ports.company.out.CompanyRepositoryPort;
-import com.datacenter.asset.domain.ports.person.in.ManagePersonUseCase;
-import com.datacenter.asset.domain.ports.person.out.PersonRepositoryPort;
+import com.datacenter.asset.domain.models.person.Person;
+import com.datacenter.asset.domain.ports.in.person.ManagePersonUseCase;
+import com.datacenter.asset.domain.ports.out.company.CompanyRepositoryPort;
+import com.datacenter.asset.domain.ports.out.person.PersonRepositoryPort;
 
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;

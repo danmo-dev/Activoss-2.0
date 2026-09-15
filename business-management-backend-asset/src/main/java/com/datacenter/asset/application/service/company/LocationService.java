@@ -1,8 +1,8 @@
 package com.datacenter.asset.application.service.company;
 
-import com.datacenter.asset.domain.location.Location;
-import com.datacenter.asset.domain.ports.location.in.ManageLocationUseCase;
-import com.datacenter.asset.domain.ports.location.out.LocationRepositoryPort;
+import com.datacenter.asset.domain.models.location.Location;
+import com.datacenter.asset.domain.ports.in.location.ManageLocationUseCase;
+import com.datacenter.asset.domain.ports.out.location.LocationRepositoryPort;
 
 import org.springframework.stereotype.Service;
 import java.util.List;

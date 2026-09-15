@@ -1,11 +1,11 @@
 package com.datacenter.asset.application.service.external.pdfgenerator;
 
-import com.datacenter.asset.domain.assignment.AssetAssignment;
-import com.datacenter.asset.domain.ports.asset.out.AssetAssignmentRepositoryPort;
-import com.datacenter.asset.domain.ports.external.out.PdfGeneratorPort;
-// Importa tus repositorios o puertos de Activo y Persona
-import com.datacenter.asset.domain.ports.asset.out.AssetRepositoryPort;
-import com.datacenter.asset.domain.ports.person.out.PersonRepositoryPort;
+import com.datacenter.asset.domain.models.assignment.AssetAssignment;
+import com.datacenter.asset.domain.ports.out.asset.AssetAssignmentRepositoryPort;
+import com.datacenter.asset.domain.ports.out.asset.AssetRepositoryPort;
+import com.datacenter.asset.domain.ports.out.external.PdfGeneratorPort;
+import com.datacenter.asset.domain.ports.out.person.PersonRepositoryPort;
+
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;

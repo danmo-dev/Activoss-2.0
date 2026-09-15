@@ -1,10 +1,10 @@
 package com.datacenter.asset.application.service.asset;
 
-import com.datacenter.asset.domain.asset.AssetId;
-import com.datacenter.asset.domain.asset.AssetValue;
-import com.datacenter.asset.domain.ports.asset.in.SaveAssetValuesUseCase;
-import com.datacenter.asset.domain.ports.asset.out.AssetRepositoryPort;
-import com.datacenter.asset.domain.ports.asset.out.AssetValueRepositoryPort;
+import com.datacenter.asset.domain.models.asset.AssetId;
+import com.datacenter.asset.domain.models.asset.AssetValue;
+import com.datacenter.asset.domain.ports.in.asset.SaveAssetValuesUseCase;
+import com.datacenter.asset.domain.ports.out.asset.AssetRepositoryPort;
+import com.datacenter.asset.domain.ports.out.asset.AssetValueRepositoryPort;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

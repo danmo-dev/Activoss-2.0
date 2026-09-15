@@ -1,8 +1,9 @@
 package com.datacenter.asset.application.service.owner;
 
-import com.datacenter.asset.domain.owner.Owner;
-import com.datacenter.asset.domain.ports.owner.in.ManageOwnersUseCase;
-import com.datacenter.asset.domain.ports.owner.out.OwnerRepositoryPort;
+import com.datacenter.asset.domain.models.owner.Owner;
+import com.datacenter.asset.domain.ports.in.owner.ManageOwnersUseCase;
+import com.datacenter.asset.domain.ports.out.owner.OwnerRepositoryPort;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;

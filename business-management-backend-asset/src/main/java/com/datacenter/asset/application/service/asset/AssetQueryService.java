@@ -1,8 +1,8 @@
 package com.datacenter.asset.application.service.asset;
 
-import com.datacenter.asset.domain.asset.Asset;
-import com.datacenter.asset.domain.ports.asset.in.SearchAssetsUseCase;
-import com.datacenter.asset.domain.ports.asset.out.AssetRepositoryPort;
+import com.datacenter.asset.domain.models.asset.Asset;
+import com.datacenter.asset.domain.ports.in.asset.SearchAssetsUseCase;
+import com.datacenter.asset.domain.ports.out.asset.AssetRepositoryPort;
 
 import org.springframework.stereotype.Service;
 
