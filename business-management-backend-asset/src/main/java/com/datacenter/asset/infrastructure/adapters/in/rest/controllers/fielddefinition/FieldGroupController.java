@@ -30,7 +30,6 @@ public class FieldGroupController {
     @PostMapping
     public ResponseEntity<FieldGroupResponse> create(@Valid @RequestBody CreateFieldGroupRequest request) {
         FieldGroup fieldGroup = new FieldGroup();
-        fieldGroup.setId(UUID.randomUUID());
         fieldGroup.setSubAssetTypeId(request.getSubAssetTypeId());
         fieldGroup.setName(request.getName());
         fieldGroup.setDescription(request.getDescription());

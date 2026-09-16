@@ -12,7 +12,10 @@ public class FieldGroupPersistenceMapper {
 
         FieldGroupEntity entity = new FieldGroupEntity();
 
-        entity.setId(domain.getId());
+        if (domain.getId() != null) {
+            entity.setId(domain.getId());
+        }
+
         entity.setSubAssetTypeId(domain.getSubAssetTypeId());
         entity.setName(domain.getName());
         entity.setDisplayOrder(domain.getDisplayOrder());

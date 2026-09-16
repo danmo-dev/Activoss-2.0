@@ -1,8 +1,9 @@
 package com.datacenter.asset.application.usecases.fielddefinition;
 
+import com.datacenter.asset.domain.exception.ResourceNotFoundException;
 import com.datacenter.asset.domain.models.fielddefinition.FieldDefinition;
 import com.datacenter.asset.domain.ports.in.fielddefinition.FieldDefinitionUseCase;
-import com.datacenter.asset.application.service.fielddefinition.FieldDefinitionService;
+import com.datacenter.asset.domain.ports.out.fielddefinition.FieldDefinitionRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,53 +15,71 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FieldDefinitionUseCaseImpl implements FieldDefinitionUseCase {
 
-    private final FieldDefinitionService fieldDefinitionService;
+    private final FieldDefinitionRepositoryPort repository;
 
     @Override
     @Transactional
     public FieldDefinition create(FieldDefinition fieldDefinition) {
-        return fieldDefinitionService.create(fieldDefinition);
+        fieldDefinition.setActive(true);
+        return repository.save(fieldDefinition);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<FieldDefinition> findAll() {
-        return fieldDefinitionService.findAll();
+        return repository.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
     public FieldDefinition findById(UUID id) {
-        return fieldDefinitionService.findById(id);
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Definición de campo no encontrada"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<FieldDefinition> findBySubAssetTypeId(UUID subAssetTypeId) {
-        return fieldDefinitionService.findBySubAssetTypeId(subAssetTypeId);
+        return repository.findBySubAssetTypeId(subAssetTypeId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<FieldDefinition> findByFieldGroupId(UUID fieldGroupId) {
-        return fieldDefinitionService.findByFieldGroupId(fieldGroupId);
+        return repository.findByFieldGroupId(fieldGroupId);
     }
 
     @Override
     @Transactional
-    public FieldDefinition update(FieldDefinition fieldDefinition) {
-        return fieldDefinitionService.update(fieldDefinition);
+    public FieldDefinition update(FieldDefinition updated) {
+        FieldDefinition existing = findById(updated.getId());
+        existing.setFieldGroupId(updated.getFieldGroupId());
+        existing.setName(updated.getName());
+        existing.setLabel(updated.getLabel());
+        existing.setFieldType(updated.getFieldType());
+        existing.setRequired(updated.getRequired());
+        existing.setVisible(updated.getVisible());
+        existing.setEditable(updated.getEditable());
+        existing.setUnique(updated.getUnique());
+        existing.setMaxLength(updated.getMaxLength());
+        existing.setDisplayOrder(updated.getDisplayOrder());
+        existing.setDefaultValue(updated.getDefaultValue());
+        return repository.update(existing);
     }
 
     @Override
     @Transactional
     public void activate(UUID id) {
-        fieldDefinitionService.activate(id);
+        FieldDefinition existing = findById(id);
+        existing.setActive(true);
+        repository.update(existing);
     }
 
     @Override
     @Transactional
     public void deactivate(UUID id) {
-        fieldDefinitionService.deactivate(id);
+        FieldDefinition existing = findById(id);
+        existing.setActive(false);
+        repository.update(existing);
     }
 }

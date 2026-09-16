@@ -7,4 +7,5 @@ public interface AssignAssetUseCase {
     AssetAssignment assignAsset(AssetAssignment assignment);
     AssetAssignment acceptAssignment(UUID assignmentId);
     AssetAssignment rejectAssignment(UUID assignmentId);
+    AssetAssignment findById(UUID assignmentId);
 }

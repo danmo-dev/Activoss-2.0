@@ -12,7 +12,7 @@ public class FieldGroup {
     private Boolean active;
 
     public FieldGroup() {
-        this.id = UUID.randomUUID();
+        
     }
 
     public FieldGroup(

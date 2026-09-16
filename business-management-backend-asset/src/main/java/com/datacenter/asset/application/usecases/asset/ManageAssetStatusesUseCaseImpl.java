@@ -1,8 +1,10 @@
 package com.datacenter.asset.application.usecases.asset;
 
+import com.datacenter.asset.domain.exception.BusinessException;
+import com.datacenter.asset.domain.exception.ResourceNotFoundException;
 import com.datacenter.asset.domain.models.configuration.AssetStatus;
 import com.datacenter.asset.domain.ports.in.asset.ManageAssetStatusesUseCase;
-import com.datacenter.asset.application.service.asset.AssetStatusService;
+import com.datacenter.asset.domain.ports.out.asset.AssetStatusRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,35 +16,49 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ManageAssetStatusesUseCaseImpl implements ManageAssetStatusesUseCase {
 
-    private final AssetStatusService assetStatusService;
+    private final AssetStatusRepositoryPort repositoryPort;
 
     @Override
     @Transactional
     public AssetStatus createAssetStatus(String code, String name) {
-        return assetStatusService.create(code, name);
+        if (repositoryPort.existsByCode(code)) {
+            throw new BusinessException("Ya existe un estado con el código: " + code);
+        }
+        AssetStatus assetStatus = new AssetStatus(null, code, name);
+        return repositoryPort.save(assetStatus);
     }
 
     @Override
     @Transactional(readOnly = true)
     public AssetStatus getById(UUID id) {
-        return assetStatusService.findById(id);
+        return repositoryPort.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Estado de activo no encontrado con id: " + id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<AssetStatus> getAllAssetStatuses() {
-        return assetStatusService.findAll();
+        return repositoryPort.findAll();
     }
 
     @Override
     @Transactional
     public AssetStatus update(UUID id, String code, String name) {
-        return assetStatusService.update(id, code, name);
+        AssetStatus existing = getById(id);
+
+        if (!existing.getCode().equals(code) && repositoryPort.existsByCode(code)) {
+            throw new BusinessException("Ya existe otro estado con el código: " + code);
+        }
+
+        existing.setCode(code);
+        existing.setName(name);
+        return repositoryPort.save(existing);
     }
 
     @Override
     @Transactional
     public void delete(UUID id) {
-        assetStatusService.delete(id);
+        AssetStatus existing = getById(id);
+        repositoryPort.deleteById(existing.getId());
     }
 }
