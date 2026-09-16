@@ -41,6 +41,7 @@ public class OwnerService {
 
     public void delete(UUID id) {
         Owner existing = findById(id);
+        System.out.println("Eliminando propietario con id: " + existing.getId());
         repositoryPort.deleteById(id);
     }
 }

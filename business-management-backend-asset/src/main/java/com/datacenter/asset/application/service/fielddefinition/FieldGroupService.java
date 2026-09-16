@@ -57,6 +57,7 @@ public class FieldGroupService {
 
     public void delete(UUID id) {
         FieldGroup fieldGroup = findById(id);
+        System.out.println("Eliminando grupo con código: " + fieldGroup.getName());
         repository.deleteById(id);
     }
 }

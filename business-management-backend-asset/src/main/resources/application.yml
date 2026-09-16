@@ -22,3 +22,12 @@ spring:
   autoconfigure:
     exclude:
       - io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
+
+jwt:
+  secret: "TuSuperSecretoDeDesarrolloQueDebeTenerAlMenos32CaracteresParaHS256"
+  expiration: 3600000
+  header: Authorization
+  prefix: Bearer
+
+
+spring.jpa.open-in-view: false
