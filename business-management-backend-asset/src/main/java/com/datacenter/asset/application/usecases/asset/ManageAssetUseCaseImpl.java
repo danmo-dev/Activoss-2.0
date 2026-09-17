@@ -64,4 +64,29 @@ public class ManageAssetUseCaseImpl implements ManageAssetUseCase {
 
         return repositoryPort.save(existingAsset);
     }
+
+    @Override
+    public Asset activate(UUID id) {
+        Asset asset = repositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activo no encontrado con id: " + id));
+        asset = asset.withActiveState(true);
+        return repositoryPort.save(asset);
+    }
+
+    @Override
+    public Asset deactivate(UUID id) {
+        Asset asset = repositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activo no encontrado con id: " + id));
+        asset = asset.withActiveState(false);
+        return repositoryPort.save(asset);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        repositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException(
+                        "Activo no encontrado con id: " + id));
+
+        repositoryPort.deleteById(id);
+    }
 }

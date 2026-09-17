@@ -23,6 +23,7 @@ public class AssetAssignment {
     private LocalDateTime acceptanceDate;
     private String pdfPath;
     private String rejectionReason;
+    private String observaciones; // <-- Nuevo campo para observaciones
 
     // Constructor vacío (aportado por la segunda versión)
     public void AssetAssignment() {}
@@ -59,5 +60,17 @@ public class AssetAssignment {
         this.rejectionReason = reason;
         this.isActive = false;
         this.endDate = LocalDateTime.now();
+    }
+
+    // Nuevo método con observaciones
+    public void accept(String generatedPdfPath, String observaciones) {
+        if (this.state != AssignmentState.PENDING) {
+            throw new IllegalStateException("Solo se pueden aceptar asignaciones en estado PENDIENTE.");
+        }
+        this.state = AssignmentState.ACCEPTED;
+        this.acceptanceDate = LocalDateTime.now();
+        this.pdfPath = generatedPdfPath;
+        this.observaciones = observaciones;
+        this.isActive = true;
     }
 }

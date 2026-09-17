@@ -13,7 +13,7 @@ public class AssetRestMapper {
         if (request == null) return null;
         return Asset.create(request.getCompanyId(), request.getAssetTypeId(), request.getSubAssetTypeId(),
             request.getOwnershipTypeId(), request.getAssetStatusId(), request.getLocationId(),
-            request.getOwnerId(), request.getCode(), request.getName(), request.getDescription(),
+            request.getOwnerId(), request.getCode(), request.getName(),request.getDescription(),
             request.getRegistrationDate());
     }
 
@@ -30,6 +30,7 @@ public class AssetRestMapper {
                 .ownerId(domain.getOwnerId())
                 .code(domain.getCode().value())
                 .name(domain.getName())
+                .isActive(domain.getIsActive())
                 .description(domain.getDescription())
                 .registrationDate(domain.getRegistrationDate())
                 .createdAt(domain.getCreatedAt())

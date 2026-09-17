@@ -2,11 +2,15 @@ package com.datacenter.asset.infrastructure.adapters.out.database.adapters.asset
 
 import com.datacenter.asset.domain.models.assignment.AssetAssignment;
 import com.datacenter.asset.domain.ports.out.asset.AssetAssignmentRepositoryPort;
+import com.datacenter.asset.domain.models.assignment.AssignmentState;
+import com.datacenter.asset.infrastructure.adapters.out.database.entities.asset.AssetAssignmentEntity;
 import com.datacenter.asset.infrastructure.adapters.out.database.mappers.asset.AssetAssignmentPersistenceMapper;
 import com.datacenter.asset.infrastructure.adapters.out.database.repositories.asset.AssetAssignmentJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 @SuppressWarnings("null")
@@ -31,4 +35,17 @@ public class AssetAssignmentRepositoryAdapter implements AssetAssignmentReposito
     public boolean hasActiveAssignment(UUID assetId) {
         return jpaRepository.existsByAssetIdAndIsActiveTrue(assetId);
     }
+
+    @Override
+    public List<AssetAssignment> findByState(AssignmentState state) {
+        
+        // El secreto está en llamar a state.name() para enviar el texto ("PENDING", "TRANSFERRED", etc.)
+        List<AssetAssignmentEntity> entities = jpaRepository.findByState(state.name());
+        
+        return entities.stream()
+                .map(mapper::toDomain) // Usa el nombre de tu mapper de persistencia
+                .toList();
+    }
+
+
 }

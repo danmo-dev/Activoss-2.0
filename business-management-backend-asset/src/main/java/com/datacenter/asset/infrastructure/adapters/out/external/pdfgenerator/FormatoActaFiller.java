@@ -15,35 +15,44 @@ import java.util.Map;
 @Component
 public class FormatoActaFiller {
 
-    // Color corporativo azul extraído del formato
     private static final BaseColor BLUE_HEADER = new BaseColor(68, 114, 196);
 
     public ResponseEntity<byte[]> generateActa(Map<String, String> datos) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-            // Formato Horizontal (Apaisado) para garantizar que las columnas quepan
             Document document = new Document(PageSize.A4.rotate(), 20, 20, 20, 20);
             PdfWriter.getInstance(document, baos);
             document.open();
 
-            // Extraemos los datos que vengan en el Map (con valores por defecto si no existen)
-            String nombre = datos.getOrDefault("nombre", "Usuario Asignado");
-            String activo = datos.getOrDefault("activo", "Activo Tecnológico");
-            String placa = datos.getOrDefault("placa", "N/A");
+            // 1. Extraemos TODOS los datos del Map (con valores por defecto)
             String fecha = datos.getOrDefault("fecha", LocalDate.now().toString());
+            String observaciones = datos.getOrDefault("observaciones", "");
+            String empresa = datos.getOrDefault("empresa", ""); // <-- Extraemos la empresa
+            
+            // Datos del Activo
+            String placa = datos.getOrDefault("placa", "N/A");
+            String nombreActivo = datos.getOrDefault("nombreActivo", "N/A");
+            String serial = datos.getOrDefault("serial", "");
+            String modelo = datos.getOrDefault("modelo", "");
+            String marca = datos.getOrDefault("marca", "");
+            String atributo = datos.getOrDefault("atributo", "");
+            String estado = datos.getOrDefault("estado", "");
 
-            // 1. ENCABEZADO PRINCIPAL
+            // Datos Persona que Recibe (Responsable)
+            String recibeNombre = datos.getOrDefault("recibeNombre", "");
+            String recibeCedula = datos.getOrDefault("recibeCedula", "");
+
+            // Datos Persona que Entrega
+            String entregaNombre = datos.getOrDefault("entregaNombre", "");
+            String entregaCedula = datos.getOrDefault("entregaCedula", "");
+
+            // 2. Construcción de las tablas
             document.add(createHeaderTable());
-
-            // 2. SECCIÓN DE INFORMACIÓN Y NOVEDAD
-            document.add(createInfoTable(fecha));
-
-            // 3. SECCIÓN DEL ACTIVO (TABLA PRINCIPAL)
-            document.add(createItemsTable(placa, activo));
-
-            // 4. SECCIÓN DE OBSERVACIONES Y FIRMAS
-            document.add(createFooterTable(nombre, fecha));
+            document.add(createInfoTable(fecha, empresa)); // <-- Pasamos la empresa
+            
+            document.add(createItemsTable(placa, nombreActivo, serial, modelo, marca, atributo, estado));
+            document.add(createFooterTable(observaciones, recibeNombre, recibeCedula, entregaNombre, entregaCedula, fecha));
 
             document.close();
 
@@ -61,12 +70,10 @@ public class FormatoActaFiller {
         table.setWidthPercentage(100);
         try { table.setWidths(new float[]{1.5f, 3f, 1.2f}); } catch (Exception ignored) {}
 
-        // Celda del Logo
         PdfPCell logoCell = new PdfPCell();
         logoCell.setRowspan(3);
         logoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        // Intentar cargar logo (Se omitirá limpiamente si el archivo no existe)
         try {
             Image logo = Image.getInstance("src/main/resources/static/logo.png");
             logo.scaleToFit(120, 50);
@@ -76,19 +83,15 @@ public class FormatoActaFiller {
         }
         table.addCell(logoCell);
 
-        // Fila 1
         table.addCell(createCell("ENTREGA DE ACTIVOS FIJOS", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_CENTER, 12));
         table.addCell(createCell("Código: GAF-FM-01", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
 
-        // Fila 2
         table.addCell(createCell("Gestión Administrativa y Financiera", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 10));
         table.addCell(createCell("Versión: 4.0", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
 
-        // Fila 3
         table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9)); 
         table.addCell(createCell("Página: 1 de 1", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
 
-        // Clasificación SGSI
         PdfPCell classCell = createCell("Clasificación SGSI: (Confidencialidad: Uso Interno | Integridad: Crítica | Disponibilidad: Indispensable)\nEste documento contiene información clasificada. Su modificación o divulgación está prohibida sin autorización del área responsable", BaseColor.WHITE, BaseColor.DARK_GRAY, false, Element.ALIGN_RIGHT, 7);
         classCell.setColspan(3);
         classCell.setBorder(Rectangle.NO_BORDER);
@@ -97,19 +100,17 @@ public class FormatoActaFiller {
         return table;
     }
 
-    private PdfPTable createInfoTable(String fecha) {
+    private PdfPTable createInfoTable(String fecha, String empresa) {
         PdfPTable table = new PdfPTable(6); 
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
 
-        // Fila 1
         table.addCell(createCell("FECHA DE INGRESO DEL ACTIVO:", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_LEFT, 9));
         table.addCell(createCell(fecha, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         PdfPCell origenH = createCell("ORIGEN CÓDIGO UBICACIÓN Y CENTRO DE COSTOS", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         origenH.setColspan(4);
         table.addCell(origenH);
 
-        // Fila 2
         PdfPCell empty1 = createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
         empty1.setColspan(2);
         table.addCell(empty1);
@@ -120,7 +121,6 @@ public class FormatoActaFiller {
         ccValue.setColspan(2);
         table.addCell(ccValue);
 
-        // Fila 3
         PdfPCell novedadH = createCell("TIPO DE NOVEDAD", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         novedadH.setColspan(2);
         table.addCell(novedadH);
@@ -131,22 +131,26 @@ public class FormatoActaFiller {
         ubiValue.setColspan(2);
         table.addCell(ubiValue);
 
-        // Filas 4 a 7
-        String[] tipos = {"Donación:", "Compra:", "Factura:", "Proveedor:"};
+        // Agregamos "Empresa:" al listado de tipos de novedad
+        String[] tipos = {"Donación:", "Compra:", "Factura:", "Proveedor:", "Empresa:"};
         for (int i = 0; i < tipos.length; i++) {
             table.addCell(createCell(tipos[i], BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
-            table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+            
+            // Si la fila es "Empresa:", inyectamos el valor recibido en el Map
+            String valorFila = tipos[i].equals("Empresa:") ? empresa : "";
+            table.addCell(createCell(valorFila, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+
             if (i == 0) {
                 PdfPCell rightBox = createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
                 rightBox.setColspan(4);
-                rightBox.setRowspan(4);
+                rightBox.setRowspan(5); // Aumentado a 5 para cubrir las 5 filas
                 table.addCell(rightBox);
             }
         }
         return table;
     }
 
-    private PdfPTable createItemsTable(String assetCode, String assetName) {
+    private PdfPTable createItemsTable(String placa, String nombre, String serial, String modelo, String marca, String atributo, String estado) {
         PdfPTable table = new PdfPTable(7);
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
@@ -170,12 +174,14 @@ public class FormatoActaFiller {
         table.addCell(createCell("Atributo", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
         table.addCell(createCell("Estado", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
 
-        // Fila de datos principales
-        table.addCell(createCell(assetCode, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        table.addCell(createCell(assetName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        for (int i = 0; i < 5; i++) table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(placa, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(nombre, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(serial, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(modelo, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(marca, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(atributo, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(estado, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 
-        // Filas vacías adicionales
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 7; col++) {
                 table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
@@ -184,22 +190,21 @@ public class FormatoActaFiller {
         return table;
     }
 
-    private PdfPTable createFooterTable(String nombrePersona, String fecha) {
+    private PdfPTable createFooterTable(String observaciones, String recibeNombre, String recibeCedula, String entregaNombre, String entregaCedula, String fecha) {
         PdfPTable table = new PdfPTable(2); 
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
 
-        // LADO IZQUIERDO
         PdfPTable obsTable = new PdfPTable(1);
         obsTable.addCell(createCell("OBSERVACIONES", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
-        obsTable.addCell(createCell("\n\n\n\n\n\n\n\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
+        String textoObs = (observaciones != null && !observaciones.trim().isEmpty()) ? observaciones + "\n\n\n\n\n\n\n\n" : "\n\n\n\n\n\n\n\n\n";
+        obsTable.addCell(createCell(textoObs, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
         
         PdfPCell leftContainer = new PdfPCell(obsTable);
         leftContainer.setBorder(Rectangle.NO_BORDER);
         leftContainer.setPadding(0);
         leftContainer.setPaddingRight(5f);
 
-        // LADO DERECHO
         PdfPTable firmTable = new PdfPTable(2);
         try { firmTable.setWidths(new float[]{0.3f, 0.7f}); } catch (Exception ignored) {}
 
@@ -210,9 +215,9 @@ public class FormatoActaFiller {
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell(nombrePersona, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(recibeNombre, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(recibeCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 
@@ -223,11 +228,11 @@ public class FormatoActaFiller {
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("NIÑO CASTAÑEDA LEIDY NATALIA", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(entregaNombre, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("1.070.975.173", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(entregaCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("DIRECTORA ADMINISTRATIVA, FINANCIERA Y DE TH", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 8));
+        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 8));
         firmTable.addCell(createCell("Fecha:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(fecha, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 

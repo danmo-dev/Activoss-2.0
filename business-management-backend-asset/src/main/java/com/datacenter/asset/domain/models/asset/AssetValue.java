@@ -11,4 +11,8 @@ public class AssetValue {
     private UUID assetId;
     private UUID fieldDefinitionId;
     private String value;
+
+    public void setValue(String value) {
+        this.value = value;
+    }
 }

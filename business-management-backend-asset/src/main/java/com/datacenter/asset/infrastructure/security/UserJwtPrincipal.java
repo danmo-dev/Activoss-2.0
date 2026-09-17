@@ -3,7 +3,7 @@ package com.datacenter.asset.infrastructure.security;
 /**
  * Principal del JWT: userId de auth y correo/documento opcional.
  */
-public record CandidateJwtPrincipal(String userId, String email, String documentNumber) {
+public record UserJwtPrincipal(String userId, String email, String documentNumber) {
 
     @Override
     public String toString() {

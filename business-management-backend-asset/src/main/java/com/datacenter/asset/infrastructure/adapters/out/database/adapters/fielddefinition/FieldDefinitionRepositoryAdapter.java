@@ -68,4 +68,9 @@ public class FieldDefinitionRepositoryAdapter implements FieldDefinitionReposito
         FieldDefinitionEntity entity = mapper.toEntity(fieldDefinition);
         return mapper.toDomain(repository.save(entity));
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        repository.deleteById(id);
+    }
 }

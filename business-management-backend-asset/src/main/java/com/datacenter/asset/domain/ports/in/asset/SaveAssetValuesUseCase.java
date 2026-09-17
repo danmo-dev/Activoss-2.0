@@ -7,4 +7,6 @@ import java.util.UUID;
 public interface SaveAssetValuesUseCase {
     List<AssetValue> saveAssetValues(UUID assetId, List<AssetValue> values);
     List<AssetValue> getAssetValues(UUID assetId);
+    AssetValue update(UUID id, UUID fieldDefinitionId, String value);
+    void delete(UUID id);
 }

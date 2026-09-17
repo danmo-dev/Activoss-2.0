@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @SuppressWarnings("null")
 @Component
-public class CandidateSecurityUtils {
+public class SecurityUtils {
 
     public static UUID getCurrentCompanyId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -39,7 +39,7 @@ public class CandidateSecurityUtils {
         if (authentication == null) {
             return null;
         }
-        if (authentication.getPrincipal() instanceof CandidateJwtPrincipal principal) {
+        if (authentication.getPrincipal() instanceof UserJwtPrincipal principal) {
             String email = principal.email();
             return email == null || email.isBlank() ? null : email.trim();
         }
@@ -51,7 +51,7 @@ public class CandidateSecurityUtils {
         if (authentication == null) {
             return null;
         }
-        if (authentication.getPrincipal() instanceof CandidateJwtPrincipal principal) {
+        if (authentication.getPrincipal() instanceof UserJwtPrincipal principal) {
             String documentNumber = principal.documentNumber();
             return documentNumber == null || documentNumber.isBlank() ? null : documentNumber.trim();
         }
@@ -92,7 +92,7 @@ public class CandidateSecurityUtils {
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .map(String::toUpperCase)
-                .anyMatch(CandidateSecurityUtils::isInternalCommentsAuthority);
+                .anyMatch(SecurityUtils::isInternalCommentsAuthority);
     }
 
     private static boolean isInternalCommentsAuthority(String authority) {

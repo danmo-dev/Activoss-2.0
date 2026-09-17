@@ -102,4 +102,10 @@ public class FieldDefinitionController {
         fieldDefinitionUseCase.deactivate(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        fieldDefinitionUseCase.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

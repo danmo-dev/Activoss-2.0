@@ -20,4 +20,5 @@ public interface AssetRepositoryPort {
     
     List<Asset> findByFilters(UUID typeId, UUID statusId, UUID locationId, String keyword);
     List<Asset> findAssignedToPerson(UUID personId);
+    void deleteById(UUID id);
 }

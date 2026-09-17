@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -22,12 +23,41 @@ public class AssetValueRepositoryAdapter implements AssetValueRepositoryPort {
 
     @Override
     public List<AssetValue> saveAll(List<AssetValue> values) {
-        var entities = values.stream().map(mapper::toEntity).collect(Collectors.toList());
-        return jpaRepository.saveAll(entities).stream().map(mapper::toDomain).collect(Collectors.toList());
+        var entities = values.stream()
+                .map(mapper::toEntity)
+                .collect(Collectors.toList());
+
+        return jpaRepository.saveAll(entities)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AssetValue save(AssetValue value) {
+        var entity = mapper.toEntity(value);
+
+        return mapper.toDomain(
+                jpaRepository.save(entity)
+        );
     }
 
     @Override
     public List<AssetValue> findByAssetId(UUID assetId) {
-        return jpaRepository.findByAssetId(assetId).stream().map(mapper::toDomain).collect(Collectors.toList());
+        return jpaRepository.findByAssetId(assetId)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<AssetValue> findById(UUID id) {
+        return jpaRepository.findById(id)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        jpaRepository.deleteById(id);
     }
 }

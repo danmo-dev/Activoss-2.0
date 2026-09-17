@@ -15,7 +15,6 @@ import java.util.UUID;
 @Component
 public class PdfGeneratorAdapter implements PdfGeneratorPort {
 
-    // Color Azul extraído del Excel
     private static final BaseColor BLUE_HEADER = new BaseColor(68, 114, 196);
 
     @Override
@@ -23,12 +22,29 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             AssetAssignment assignment,
             String personFirstName,
             String personLastName,
+            String personDocumentNumber,
+            String delivererFirstName,
+            String delivererLastName,
+            String delivererDocumentNumber,
             String assetCode,
-            String assetName) {
+            String assetName,
+            String locationCode,         
+            String companyTaxId,       
+            String companyName,          
+            String observaciones,
+            String assetSerial,
+            String assetMarca,       
+            String assetModelo,      
+            String assetProcesador,  
+            String assetEstado,
+            String assetPlaca,
+            String assetAtributo) { 
 
         String fileName = "acta_entrega_" + UUID.randomUUID() + ".pdf";
         String directoryPath = "src/main/resources/static/actas/";
         String filePath = directoryPath + fileName;
+        
+        String fechaActual = LocalDate.now().toString();
 
         try {
             File directory = new File(directoryPath);
@@ -36,28 +52,29 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
                 directory.mkdirs();
             }
 
-            // Usamos formato horizontal (Landscape) por la cantidad de columnas
             Document document = new Document(PageSize.A4.rotate(), 20, 20, 20, 20);
             PdfWriter.getInstance(document, new FileOutputStream(filePath));
             document.open();
 
-            // --- 1. ENCABEZADO PRINCIPAL ---
             document.add(createHeaderTable());
+            
+            // Inyectamos la fecha y los datos de la empresa
+            document.add(createInfoTable(locationCode, companyTaxId, companyName, fechaActual)); 
+            
+            document.add(createItemsTable(
+                    (assetPlaca != null && !assetPlaca.isEmpty()) ? assetPlaca : assetCode, 
+                    assetName, assetSerial, assetModelo, assetMarca, assetAtributo, assetEstado));      
+            
+            String receiverFullName = personFirstName + " " + personLastName;
+            String delivererFullName = delivererFirstName + " " + delivererLastName;
 
-            // --- 2. SECCIÓN DE INFORMACIÓN Y NOVEDAD ---
-            document.add(createInfoTable());
-
-            // --- 3. SECCIÓN DEL ACTIVO (TABLA PRINCIPAL) ---
-            document.add(createItemsTable(assetCode, assetName));
-
-            // --- 4. SECCIÓN DE OBSERVACIONES Y FIRMAS ---
-            document.add(createFooterTable(personFirstName, personLastName));
+            document.add(createFooterTable(receiverFullName, personDocumentNumber, delivererFullName, delivererDocumentNumber, fechaActual, observaciones));
 
             document.close();
 
             return "/actas/" + fileName;
         } catch (Exception e) {
-            throw new RuntimeException("Error generando PDF con formato Excel", e);
+            throw new RuntimeException("Error generando PDF del acta", e);
         }
     }
 
@@ -66,12 +83,10 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         table.setWidthPercentage(100);
         try { table.setWidths(new float[]{1.5f, 3f, 1.2f}); } catch (Exception ignored) {}
 
-        // Celda del Logo
         PdfPCell logoCell = new PdfPCell();
         logoCell.setRowspan(3);
         logoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        // Intentar cargar logo (Ajusta la ruta real de tu logo)
         try {
             Image logo = Image.getInstance("src/main/resources/static/logo.png");
             logo.scaleToFit(120, 50);
@@ -81,19 +96,15 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         }
         table.addCell(logoCell);
 
-        // Fila 1
         table.addCell(createCell("ENTREGA DE ACTIVOS FIJOS", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_CENTER, 12));
         table.addCell(createCell("Código: GAF-FM-01", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
 
-        // Fila 2
         table.addCell(createCell("Gestión Administrativa y Financiera", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 10));
         table.addCell(createCell("Versión: 4.0", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
 
-        // Fila 3
-        table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9)); // Vacio en medio
+        table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9)); 
         table.addCell(createCell("Página: 1 de 1", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
 
-        // Clasificación SGSI (Abarca toda la fila abajo)
         PdfPCell classCell = createCell("Clasificación SGSI: (Confidencialidad: Uso Interno | Integridad: Crítica | Disponibilidad: Indispensable)\nEste documento contiene información clasificada. Su modificación o divulgación está prohibida sin autorización del área responsable", BaseColor.WHITE, BaseColor.DARK_GRAY, false, Element.ALIGN_RIGHT, 7);
         classCell.setColspan(3);
         classCell.setBorder(Rectangle.NO_BORDER);
@@ -102,63 +113,64 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         return table;
     }
 
-    private PdfPTable createInfoTable() {
-        PdfPTable table = new PdfPTable(6); // 6 columnas lógicas para maquetar
+    private PdfPTable createInfoTable(String locationCode, String companyTaxId, String companyName, String fechaActual) {
+        PdfPTable table = new PdfPTable(6); 
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
 
-        // Fila 1: Fecha y Origen
         table.addCell(createCell("FECHA DE INGRESO DEL ACTIVO:", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_LEFT, 9));
-        table.addCell(createCell(LocalDate.now().toString(), BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(fechaActual, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        
         PdfPCell origenH = createCell("ORIGEN CÓDIGO UBICACIÓN Y CENTRO DE COSTOS", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         origenH.setColspan(4);
         table.addCell(origenH);
 
-        // Fila 2: Centro de costos
         PdfPCell empty1 = createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
         empty1.setColspan(2);
         table.addCell(empty1);
         PdfPCell ccLabel = createCell("Código Centro de Costos", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9);
         ccLabel.setColspan(2);
         table.addCell(ccLabel);
-        PdfPCell ccValue = createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
+        // Aquí concatenamos NIT y Nombre para el Centro de Costos
+        PdfPCell ccValue = createCell(companyTaxId, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
         ccValue.setColspan(2);
         table.addCell(ccValue);
 
-        // Fila 3: Tipo de Novedad y Ubicación
         PdfPCell novedadH = createCell("TIPO DE NOVEDAD", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         novedadH.setColspan(2);
         table.addCell(novedadH);
         PdfPCell ubiLabel = createCell("Código Ubicación", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9);
         ubiLabel.setColspan(2);
         table.addCell(ubiLabel);
-        PdfPCell ubiValue = createCell("1036", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
+        PdfPCell ubiValue = createCell(locationCode, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
         ubiValue.setColspan(2);
         table.addCell(ubiValue);
 
-        // Filas 4, 5, 6, 7: Tipos (Donación, Compra...)
-        String[] tipos = {"Donación:", "Compra:", "Factura:", "Proveedor:"};
+        // Agregamos "Empresa:" al listado
+        String[] tipos = {"Donación:", "Compra:", "Factura:", "Proveedor:", "Empresa:"};
         for (int i = 0; i < tipos.length; i++) {
             table.addCell(createCell(tipos[i], BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
-            table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+            
+            // Si la fila es "Empresa:", inyectamos el nombre de la empresa que viene por parámetro
+            String valorFila = tipos[i].equals("Empresa:") ? companyName : "";
+            table.addCell(createCell(valorFila, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+
             if (i == 0) {
-                // El cuadro gigante en blanco a la derecha
                 PdfPCell rightBox = createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
                 rightBox.setColspan(4);
-                rightBox.setRowspan(4);
+                rightBox.setRowspan(5); // Aumentado a 5 para cubrir la nueva fila
                 table.addCell(rightBox);
             }
         }
         return table;
     }
 
-    private PdfPTable createItemsTable(String assetCode, String assetName) {
+    private PdfPTable createItemsTable(String assetPlaca, String assetName, String assetSerial, String assetModelo, String assetMarca, String assetAtributo, String assetEstado) {
         PdfPTable table = new PdfPTable(7);
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
         try { table.setWidths(new float[]{1.2f, 2.5f, 1.2f, 1.2f, 1.2f, 1.5f, 1f}); } catch (Exception ignored) {}
 
-        // Encabezados combinados
         PdfPCell placaH = createCell("Placa N°", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         placaH.setRowspan(2);
         table.addCell(placaH);
@@ -171,19 +183,20 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         attrH.setColspan(5);
         table.addCell(attrH);
 
-        // Sub-Encabezados
         table.addCell(createCell("SERIAL", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
         table.addCell(createCell("MODELO", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
         table.addCell(createCell("MARCA", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
         table.addCell(createCell("Atributo", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
         table.addCell(createCell("Estado", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
 
-        // Fila de datos (La real)
-        table.addCell(createCell(assetCode, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell(assetPlaca, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         table.addCell(createCell(assetName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        for (int i = 0; i < 5; i++) table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell((assetSerial != null) ? assetSerial : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell((assetModelo != null) ? assetModelo : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell((assetMarca != null) ? assetMarca : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell((assetAtributo != null) ? assetAtributo : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        table.addCell(createCell((assetEstado != null) ? assetEstado : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 
-        // Filas vacías adicionales (para dar el efecto de tabla de formato impreso)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 7; col++) {
                 table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
@@ -192,26 +205,23 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         return table;
     }
 
-    private PdfPTable createFooterTable(String personFirstName, String personLastName) {
-        PdfPTable table = new PdfPTable(2); // Dividido 50% - 50%
+    private PdfPTable createFooterTable(String receiverName, String receiverCedula, String delivererName, String delivererCedula, String fecha, String observaciones) {
+        PdfPTable table = new PdfPTable(2); 
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
 
-        // -- LADO IZQUIERDO: OBSERVACIONES --
         PdfPTable obsTable = new PdfPTable(1);
         obsTable.addCell(createCell("OBSERVACIONES", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
-        obsTable.addCell(createCell("\n\n\n\n\n\n\n\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
+        obsTable.addCell(createCell((observaciones != null && !observaciones.isEmpty()) ? observaciones + "\n\n\n\n\n\n\n\n" : "\n\n\n\n\n\n\n\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
         
         PdfPCell leftContainer = new PdfPCell(obsTable);
         leftContainer.setBorder(Rectangle.NO_BORDER);
         leftContainer.setPadding(0);
         leftContainer.setPaddingRight(5f);
 
-        // -- LADO DERECHO: FIRMAS --
         PdfPTable firmTable = new PdfPTable(2);
         try { firmTable.setWidths(new float[]{0.3f, 0.7f}); } catch (Exception ignored) {}
 
-        // Responsable
         PdfPCell respH = createCell("RESPONSABLE DEL ACTIVO", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         respH.setColspan(2);
         firmTable.addCell(respH);
@@ -219,13 +229,12 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell(personFirstName + " " + personLastName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(receiverName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(receiverCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9)); 
 
-        // Quien Entrega
         PdfPCell entregaH = createCell("QUIEN ENTREGA EL ACTIVO", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         entregaH.setColspan(2);
         firmTable.addCell(entregaH);
@@ -233,13 +242,13 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("NIÑO CASTAÑEDA LEIDY NATALIA", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(delivererName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("1.070.975.173", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(delivererCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("DIRECTORA ADMINISTRATIVA, FINANCIERA Y DE TH", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 8));
+        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 8)); 
         firmTable.addCell(createCell("Fecha:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell(LocalDate.now().toString(), BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell(fecha, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 
         PdfPCell rightContainer = new PdfPCell(firmTable);
         rightContainer.setBorder(Rectangle.NO_BORDER);
@@ -252,7 +261,6 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         return table;
     }
 
-    // Helper metod para crear celdas de forma limpia
     private PdfPCell createCell(String text, BaseColor bgColor, BaseColor fgColor, boolean isBold, int alignment, float fontSize) {
         Font font = FontFactory.getFont(FontFactory.HELVETICA, fontSize, isBold ? Font.BOLD : Font.NORMAL, fgColor);
         PdfPCell cell = new PdfPCell(new Phrase(text, font));

@@ -10,16 +10,11 @@ import java.util.UUID;
 
 @Table(name = "field_definitions")
 public interface FieldDefinitionRepositoryPort {
-
     FieldDefinition save(FieldDefinition fieldDefinition);
-
     List<FieldDefinition> findAll();
-
     Optional<FieldDefinition> findById(UUID id);
-
     List<FieldDefinition> findBySubAssetTypeId(UUID subAssetTypeId);
-
     List<FieldDefinition> findByFieldGroupId(UUID fieldGroupId);
-
     FieldDefinition update(FieldDefinition fieldDefinition);
+    void deleteById(UUID id);
 }

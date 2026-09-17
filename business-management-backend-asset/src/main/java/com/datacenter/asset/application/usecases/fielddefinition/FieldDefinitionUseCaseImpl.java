@@ -82,4 +82,11 @@ public class FieldDefinitionUseCaseImpl implements FieldDefinitionUseCase {
         existing.setActive(false);
         repository.update(existing);
     }
+
+    @Override
+    @Transactional
+    public void delete(UUID id) {
+        FieldDefinition fieldDefinition = findById(id);
+        repository.deleteById(fieldDefinition.getId());
+    }
 }

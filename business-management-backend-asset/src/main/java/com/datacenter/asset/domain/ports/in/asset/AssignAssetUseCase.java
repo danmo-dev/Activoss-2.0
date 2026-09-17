@@ -5,7 +5,9 @@ import java.util.UUID;
 
 public interface AssignAssetUseCase {
     AssetAssignment assignAsset(AssetAssignment assignment);
-    AssetAssignment acceptAssignment(UUID assignmentId);
+    // Agregamos deliveredById a la interfaz
+    AssetAssignment acceptAssignment(UUID assignmentId, UUID deliveredById, String observaciones);
     AssetAssignment rejectAssignment(UUID assignmentId);
     AssetAssignment findById(UUID assignmentId);
+    String generarActa(UUID assignmentId, UUID deliveredById, String observaciones);
 }

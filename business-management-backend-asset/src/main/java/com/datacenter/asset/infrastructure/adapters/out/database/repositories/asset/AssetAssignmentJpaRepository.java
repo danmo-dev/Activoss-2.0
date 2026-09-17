@@ -8,7 +8,10 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AssetAssignmentJpaRepository extends JpaRepository<AssetAssignmentEntity, UUID> {
+
     boolean existsByAssetIdAndIsActiveTrue(UUID assetId);
 
     List<AssetAssignmentEntity> findByPersonIdAndIsActiveTrue(UUID personId);
+
+    List<AssetAssignmentEntity> findByState(String state);
 }

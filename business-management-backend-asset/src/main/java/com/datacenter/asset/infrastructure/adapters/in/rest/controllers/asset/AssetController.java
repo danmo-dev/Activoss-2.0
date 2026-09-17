@@ -66,4 +66,22 @@ public class AssetController {
         );
         return ResponseEntity.ok(restMapper.toResponse(updatedAsset));
     }
+
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<AssetResponse> activate(@PathVariable UUID id) {
+        Asset activated = useCase.activate(id); // <-- usar useCase
+        return ResponseEntity.ok(restMapper.toResponse(activated)); // <-- usar restMapper
+    }
+
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<AssetResponse> deactivate(@PathVariable UUID id) {
+        Asset deactivated = useCase.deactivate(id); // <-- usar useCase
+        return ResponseEntity.ok(restMapper.toResponse(deactivated)); // <-- usar restMapper
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        useCase.delete(id); // <-- usar useCase
+        return ResponseEntity.noContent().build();
+    }
 }

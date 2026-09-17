@@ -1,11 +1,10 @@
 package com.datacenter.asset.infrastructure.adapters.in.rest.controllers.asset;
 
-import com.datacenter.asset.domain.models.assignment.AssetAssignment;
-import com.datacenter.asset.domain.models.assignment.AssignmentState;
 import com.datacenter.asset.domain.ports.in.asset.AssignAssetUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -18,16 +17,21 @@ public class AssetAssignmentApprovalController {
         this.assignAssetUseCase = assignAssetUseCase;
     }
 
-    // POST: Devuelve el link del acta ya generada
     @PostMapping("/{id}/acta")
-    public ResponseEntity<String> generarActa(@PathVariable UUID id) {
-        AssetAssignment assignment = assignAssetUseCase.findById(id); // <-- solo buscar
-
-        if (assignment.getState() != AssignmentState.ACCEPTED) {
-            throw new IllegalStateException("El acta solo existe si la asignación fue aceptada.");
+    public ResponseEntity<Map<String, String>> generarActa(
+            @PathVariable UUID id, 
+            @RequestBody(required = false) Map<String, String> requestBody) {
+        
+        if (requestBody == null || !requestBody.containsKey("deliveredById") || requestBody.get("deliveredById").isBlank()) {
+            throw new IllegalArgumentException("El body es obligatorio y debe contener el 'deliveredById'.");
         }
+        
+        UUID deliveredById = UUID.fromString(requestBody.get("deliveredById"));
+        String observaciones = requestBody.getOrDefault("observaciones", "");
 
-        String fullUrl = "http://localhost:8080" + assignment.getPdfPath();
-        return ResponseEntity.ok(fullUrl);
+        String fullUrl = assignAssetUseCase.generarActa(id, deliveredById, observaciones);
+        
+        // Retornamos un JSON estándar que cualquier cliente (Postman/Angular) puede leer sin error
+        return ResponseEntity.ok(Map.of("url", fullUrl));
     }
 }

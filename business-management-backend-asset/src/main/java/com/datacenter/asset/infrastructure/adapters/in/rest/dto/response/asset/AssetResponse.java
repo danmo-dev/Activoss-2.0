@@ -26,6 +26,7 @@ public class AssetResponse {
     private String code;
     private String name;
     private String description;
+    private boolean isActive;
     private LocalDate registrationDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -106,4 +106,9 @@ public class AssetRepositoryAdapter implements AssetRepositoryPort {
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        repository.deleteById(id);
+    }
 }

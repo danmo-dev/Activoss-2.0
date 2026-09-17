@@ -8,4 +8,5 @@ public class AssignAssetRequest {
     private UUID assetId;
     private UUID personId;
     private String notes;
+    private UUID createdById; // <-- Añadido
 }
