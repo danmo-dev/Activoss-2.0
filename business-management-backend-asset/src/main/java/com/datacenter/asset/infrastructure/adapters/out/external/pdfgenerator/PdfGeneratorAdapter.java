@@ -23,9 +23,11 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             String personFirstName,
             String personLastName,
             String personDocumentNumber,
+            String personEmail,          // <-- Recibe
             String delivererFirstName,
             String delivererLastName,
             String delivererDocumentNumber,
+            String delivererEmail,       // <-- Recibe
             String assetCode,
             String assetName,
             String locationCode,         
@@ -38,7 +40,8 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             String assetProcesador,  
             String assetEstado,
             String assetPlaca,
-            String assetAtributo) { 
+            String assetAtributo,
+            String fechaHora) {          // <-- Recibe
 
         String fileName = "acta_entrega_" + UUID.randomUUID() + ".pdf";
         String directoryPath = "src/main/resources/static/actas/";
@@ -57,8 +60,6 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             document.open();
 
             document.add(createHeaderTable());
-            
-            // Inyectamos la fecha y los datos de la empresa
             document.add(createInfoTable(locationCode, companyTaxId, companyName, fechaActual)); 
             
             document.add(createItemsTable(
@@ -68,7 +69,8 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             String receiverFullName = personFirstName + " " + personLastName;
             String delivererFullName = delivererFirstName + " " + delivererLastName;
 
-            document.add(createFooterTable(receiverFullName, personDocumentNumber, delivererFullName, delivererDocumentNumber, fechaActual, observaciones));
+            // Pasamos los correos y la fechaHora al footer
+            document.add(createFooterTable(receiverFullName, personDocumentNumber, personEmail, delivererFullName, delivererDocumentNumber, delivererEmail, fechaActual, fechaHora, observaciones));
 
             document.close();
 
@@ -90,9 +92,11 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         try {
             Image logo = Image.getInstance("src/main/resources/static/logo.png");
             logo.scaleToFit(120, 50);
-            logoCell.addElement(logo);
+            logo.setAlignment(Element.ALIGN_CENTER); // <-- aquí fuerzas el centrado
+            logoCell.addElement(logo);               // mantienes addElement
         } catch (Exception e) {
-            logoCell.setPhrase(new Phrase("LOGOS\nDataCenter / SIG", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
+            logoCell.setPhrase(new Phrase("LOGOS\nDataCenter / SIG",
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
         }
         table.addCell(logoCell);
 
@@ -131,7 +135,6 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         PdfPCell ccLabel = createCell("Código Centro de Costos", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9);
         ccLabel.setColspan(2);
         table.addCell(ccLabel);
-        // Aquí concatenamos NIT y Nombre para el Centro de Costos
         PdfPCell ccValue = createCell(companyTaxId, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
         ccValue.setColspan(2);
         table.addCell(ccValue);
@@ -146,19 +149,16 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         ubiValue.setColspan(2);
         table.addCell(ubiValue);
 
-        // Agregamos "Empresa:" al listado
         String[] tipos = {"Donación:", "Compra:", "Factura:", "Proveedor:", "Empresa:"};
         for (int i = 0; i < tipos.length; i++) {
             table.addCell(createCell(tipos[i], BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
-            
-            // Si la fila es "Empresa:", inyectamos el nombre de la empresa que viene por parámetro
             String valorFila = tipos[i].equals("Empresa:") ? companyName : "";
             table.addCell(createCell(valorFila, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 
             if (i == 0) {
                 PdfPCell rightBox = createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
                 rightBox.setColspan(4);
-                rightBox.setRowspan(5); // Aumentado a 5 para cubrir la nueva fila
+                rightBox.setRowspan(5); 
                 table.addCell(rightBox);
             }
         }
@@ -205,7 +205,7 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         return table;
     }
 
-    private PdfPTable createFooterTable(String receiverName, String receiverCedula, String delivererName, String delivererCedula, String fecha, String observaciones) {
+    private PdfPTable createFooterTable(String receiverName, String receiverCedula, String receiverEmail, String delivererName, String delivererCedula, String delivererEmail, String fecha, String fechaHora, String observaciones) {
         PdfPTable table = new PdfPTable(2); 
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
@@ -227,7 +227,11 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         firmTable.addCell(respH);
 
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
+        
+        // <-- AQUI REEMPLAZAMOS EL ESPACIO EN BLANCO POR EL ACUSE DE LA PERSONA QUE RECIBE -->
+        String firmaRecibe = "Acuse de aceptado\n" + fechaHora + "\n" + receiverEmail;
+        firmTable.addCell(createCell(firmaRecibe, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
+        
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(receiverName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
@@ -240,7 +244,11 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         firmTable.addCell(entregaH);
 
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
+        
+        // <-- AQUI REEMPLAZAMOS EL ESPACIO EN BLANCO POR EL ACUSE DE LA PERSONA QUE ENTREGA -->
+        String firmaEntrega = "Acuse de entrega\n" + fechaHora + "\n" + delivererEmail;
+        firmTable.addCell(createCell(firmaEntrega, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
+        
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(delivererName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));

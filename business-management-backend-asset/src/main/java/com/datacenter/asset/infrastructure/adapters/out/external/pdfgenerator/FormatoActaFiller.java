@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @SuppressWarnings("null")
@@ -25,12 +27,10 @@ public class FormatoActaFiller {
             PdfWriter.getInstance(document, baos);
             document.open();
 
-            // 1. Extraemos TODOS los datos del Map (con valores por defecto)
             String fecha = datos.getOrDefault("fecha", LocalDate.now().toString());
             String observaciones = datos.getOrDefault("observaciones", "");
-            String empresa = datos.getOrDefault("empresa", ""); // <-- Extraemos la empresa
+            String empresa = datos.getOrDefault("empresa", ""); 
             
-            // Datos del Activo
             String placa = datos.getOrDefault("placa", "N/A");
             String nombreActivo = datos.getOrDefault("nombreActivo", "N/A");
             String serial = datos.getOrDefault("serial", "");
@@ -39,20 +39,23 @@ public class FormatoActaFiller {
             String atributo = datos.getOrDefault("atributo", "");
             String estado = datos.getOrDefault("estado", "");
 
-            // Datos Persona que Recibe (Responsable)
             String recibeNombre = datos.getOrDefault("recibeNombre", "");
             String recibeCedula = datos.getOrDefault("recibeCedula", "");
+            // <-- NUEVOS DATOS PARA LA FIRMA -->
+            String recibeCorreo = datos.getOrDefault("recibeCorreo", "sin_correo@dominio.com");
 
-            // Datos Persona que Entrega
             String entregaNombre = datos.getOrDefault("entregaNombre", "");
             String entregaCedula = datos.getOrDefault("entregaCedula", "");
+            // <-- NUEVOS DATOS PARA LA FIRMA -->
+            String entregaCorreo = datos.getOrDefault("entregaCorreo", "sin_correo@dominio.com");
+            String fechaHora = datos.getOrDefault("fechaHora", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-            // 2. Construcción de las tablas
             document.add(createHeaderTable());
-            document.add(createInfoTable(fecha, empresa)); // <-- Pasamos la empresa
-            
+            document.add(createInfoTable(fecha, empresa)); 
             document.add(createItemsTable(placa, nombreActivo, serial, modelo, marca, atributo, estado));
-            document.add(createFooterTable(observaciones, recibeNombre, recibeCedula, entregaNombre, entregaCedula, fecha));
+            
+            // Pasamos los nuevos datos al footer
+            document.add(createFooterTable(observaciones, recibeNombre, recibeCedula, recibeCorreo, entregaNombre, entregaCedula, entregaCorreo, fecha, fechaHora));
 
             document.close();
 
@@ -131,19 +134,16 @@ public class FormatoActaFiller {
         ubiValue.setColspan(2);
         table.addCell(ubiValue);
 
-        // Agregamos "Empresa:" al listado de tipos de novedad
         String[] tipos = {"Donación:", "Compra:", "Factura:", "Proveedor:", "Empresa:"};
         for (int i = 0; i < tipos.length; i++) {
             table.addCell(createCell(tipos[i], BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
-            
-            // Si la fila es "Empresa:", inyectamos el valor recibido en el Map
             String valorFila = tipos[i].equals("Empresa:") ? empresa : "";
             table.addCell(createCell(valorFila, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 
             if (i == 0) {
                 PdfPCell rightBox = createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
                 rightBox.setColspan(4);
-                rightBox.setRowspan(5); // Aumentado a 5 para cubrir las 5 filas
+                rightBox.setRowspan(5); 
                 table.addCell(rightBox);
             }
         }
@@ -190,7 +190,7 @@ public class FormatoActaFiller {
         return table;
     }
 
-    private PdfPTable createFooterTable(String observaciones, String recibeNombre, String recibeCedula, String entregaNombre, String entregaCedula, String fecha) {
+    private PdfPTable createFooterTable(String observaciones, String recibeNombre, String recibeCedula, String recibeCorreo, String entregaNombre, String entregaCedula, String entregaCorreo, String fecha, String fechaHora) {
         PdfPTable table = new PdfPTable(2); 
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
@@ -213,7 +213,11 @@ public class FormatoActaFiller {
         firmTable.addCell(respH);
 
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
+        
+        // <-- AQUI REEMPLAZAMOS EL ESPACIO EN BLANCO -->
+        String firmaRecibe = "Acuse de aceptado\n" + fechaHora + "\n" + recibeCorreo;
+        firmTable.addCell(createCell(firmaRecibe, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
+        
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(recibeNombre, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
@@ -226,7 +230,11 @@ public class FormatoActaFiller {
         firmTable.addCell(entregaH);
 
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("\n\n", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
+        
+        // <-- AQUI REEMPLAZAMOS EL ESPACIO EN BLANCO -->
+        String firmaEntrega = "Acuse de entrega\n" + fechaHora + "\n" + entregaCorreo;
+        firmTable.addCell(createCell(firmaEntrega, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
+        
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(entregaNombre, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));

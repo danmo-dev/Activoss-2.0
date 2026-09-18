@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,15 +112,19 @@ public class AssignAssetUseCaseImpl implements AssignAssetUseCase {
             }
         }
 
+        String fechaHoraAct = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
         // Generar PDF
         String pdfUrl = pdfGenerator.generateAssignmentAct(
                 assignment, 
                 person.getFirstName(), 
                 person.getLastName(), 
                 person.getDocumentNumber(), 
+                person.getEmail(),
                 deliverer.getFirstName(),
                 deliverer.getLastName(),
                 deliverer.getDocumentNumber(),
+                deliverer.getEmail(),
                 asset.getCode().value(), 
                 asset.getName(),
                 location.getCode(),         
@@ -132,7 +137,8 @@ public class AssignAssetUseCaseImpl implements AssignAssetUseCase {
                 procesador,       
                 status.getName(), 
                 placa,            
-                atributo          
+                atributo,
+                fechaHoraAct        
         );
 
         // Actualizamos la ruta del PDF en la asignación

@@ -9,9 +9,11 @@ public interface PdfGeneratorPort {
             String personFirstName,
             String personLastName,
             String personDocumentNumber,
+            String personEmail,
             String delivererFirstName,
             String delivererLastName,
             String delivererDocumentNumber,
+            String delivererEmail,
             String assetCode,
             String assetName,
             String locationCode,
@@ -24,6 +26,7 @@ public interface PdfGeneratorPort {
             String assetProcesador,
             String assetEstado,
             String assetPlaca,
-            String assetAtributo
+            String assetAtributo,
+            String fechaHora
     );
 }
