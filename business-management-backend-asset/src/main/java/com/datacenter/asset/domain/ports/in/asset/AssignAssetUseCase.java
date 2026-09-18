@@ -10,5 +10,5 @@ public interface AssignAssetUseCase {
     AssetAssignment acceptAssignment(UUID assignmentId, UUID deliveredById, String observaciones);
     AssetAssignment rejectAssignment(UUID assignmentId);
     AssetAssignment findById(UUID assignmentId);
-    String generarActa(UUID assignmentId, UUID deliveredById, String observaciones);
+    String generarActa(UUID assignmentId, UUID deliveredById, String observaciones, byte[] imagenObservacion);
 }

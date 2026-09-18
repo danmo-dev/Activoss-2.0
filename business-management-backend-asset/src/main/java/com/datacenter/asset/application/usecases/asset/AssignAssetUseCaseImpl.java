@@ -70,14 +70,12 @@ public class AssignAssetUseCaseImpl implements AssignAssetUseCase {
     }
 
     // NUEVO MÉTODO PARA ENDPOINT /acta (Genera PDF, EAV y envía el correo)
-    @Override
+   @Override
     @Transactional
-    public String generarActa(UUID assignmentId, UUID deliveredById, String observaciones) {
+    public String generarActa(UUID assignmentId, UUID deliveredById, String observaciones, byte[] imagenObservacion) {
         AssetAssignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Asignación no encontrada"));
 
-        // LÓGICA DE ESTADO FLEXIBLE:
-        // Si sigue PENDIENTE, la aceptamos automáticamente. Si ya está ACEPTADA, continuamos sin lanzar error.
         if (assignment.getState() == AssignmentState.PENDING) {
             assignment.accept("", observaciones);
         }
@@ -95,7 +93,6 @@ public class AssignAssetUseCaseImpl implements AssignAssetUseCase {
         var status = assetStatusRepository.findById(asset.getAssetStatusId())
                 .orElseThrow(() -> new ResourceNotFoundException("Estado no encontrado"));
 
-        // Lógica EAV: Extraer atributos dinámicos
         List<AssetValue> assetValues = assetValueRepository.findByAssetId(asset.getId().value());
         String marca = "", modelo = "", procesador = "", placa = "", atributo = "", serial = "";
 
@@ -114,7 +111,7 @@ public class AssignAssetUseCaseImpl implements AssignAssetUseCase {
 
         String fechaHoraAct = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        // Generar PDF
+        // Generar PDF pasando la imagen
         String pdfUrl = pdfGenerator.generateAssignmentAct(
                 assignment, 
                 person.getFirstName(), 
@@ -138,10 +135,10 @@ public class AssignAssetUseCaseImpl implements AssignAssetUseCase {
                 status.getName(), 
                 placa,            
                 atributo,
-                fechaHoraAct        
+                fechaHoraAct,
+                imagenObservacion // <-- PASAMOS LA IMAGEN AQUÍ
         );
 
-        // Actualizamos la ruta del PDF en la asignación
         assignment.setPdfPath(pdfUrl);
         if (observaciones != null && !observaciones.isEmpty()) {
             assignment.setNotes(observaciones);

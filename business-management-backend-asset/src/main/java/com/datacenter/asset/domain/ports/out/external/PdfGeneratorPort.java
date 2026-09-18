@@ -27,6 +27,7 @@ public interface PdfGeneratorPort {
             String assetEstado,
             String assetPlaca,
             String assetAtributo,
-            String fechaHora
+            String fechaHora,
+            byte[] imagenObservacion
     );
 }

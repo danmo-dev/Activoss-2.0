@@ -17,21 +17,27 @@ public class AssetAssignmentApprovalController {
         this.assignAssetUseCase = assignAssetUseCase;
     }
 
-    @PostMapping("/{id}/acta")
-    public ResponseEntity<Map<String, String>> generarActa(
-            @PathVariable UUID id, 
-            @RequestBody(required = false) Map<String, String> requestBody) {
+    // Único endpoint para generar el acta. Soporta texto y archivo opcional mediante form-data.
+    @PostMapping(value = "/{id}/acta", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> generarActaEndpoint(
+            @PathVariable UUID id,
+            @RequestParam("deliveredById") UUID deliveredById,
+            @RequestParam(value = "observaciones", required = false) String observaciones,
+            @RequestParam(value = "imagen", required = false) org.springframework.web.multipart.MultipartFile imagen) {
         
-        if (requestBody == null || !requestBody.containsKey("deliveredById") || requestBody.get("deliveredById").isBlank()) {
-            throw new IllegalArgumentException("El body es obligatorio y debe contener el 'deliveredById'.");
+        try {
+            // Convierte el archivo a byte[] si existe, si no lo deja null
+            byte[] imagenBytes = (imagen != null && !imagen.isEmpty()) ? imagen.getBytes() : null;
+            
+            // Pasamos un string vacío si observaciones viene null
+            String obsFinales = (observaciones != null) ? observaciones : "";
+            
+            String pdfUrl = assignAssetUseCase.generarActa(id, deliveredById, obsFinales, imagenBytes);
+            
+            // Retornamos un JSON estructurado
+            return ResponseEntity.ok(Map.of("url", pdfUrl));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
-        
-        UUID deliveredById = UUID.fromString(requestBody.get("deliveredById"));
-        String observaciones = requestBody.getOrDefault("observaciones", "");
-
-        String fullUrl = assignAssetUseCase.generarActa(id, deliveredById, observaciones);
-        
-        // Retornamos un JSON estándar que cualquier cliente (Postman/Angular) puede leer sin error
-        return ResponseEntity.ok(Map.of("url", fullUrl));
     }
 }
