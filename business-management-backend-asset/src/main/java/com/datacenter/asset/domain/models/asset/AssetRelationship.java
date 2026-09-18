@@ -13,4 +13,15 @@ public class AssetRelationship {
     private UUID childAssetId;
     private UUID relationshipTypeId;
     private LocalDateTime registrationDate;
+    public void setParentAssetId(UUID parentAssetId) {
+        this.parentAssetId = parentAssetId;
+    }
+
+    public void setChildAssetId(UUID childAssetId) {
+        this.childAssetId = childAssetId;
+    }
+
+    public void setRelationshipTypeId(UUID relationshipTypeId) {
+        this.relationshipTypeId = relationshipTypeId;
+    }
 }

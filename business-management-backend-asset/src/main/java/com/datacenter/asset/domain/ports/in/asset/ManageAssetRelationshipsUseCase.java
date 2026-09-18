@@ -7,4 +7,6 @@ import java.util.UUID;
 public interface ManageAssetRelationshipsUseCase {
     AssetRelationship createRelationship(AssetRelationship relationship);
     List<AssetRelationship> findChildrenByParentId(UUID parentAssetId);
+    AssetRelationship update(UUID relationshipId, UUID newParentId, UUID newChildId, UUID newTypeId, String user);
+    void delete(UUID relationshipId, String user);
 }
