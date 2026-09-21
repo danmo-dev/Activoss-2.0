@@ -1,17 +1,17 @@
 package com.datacenter.asset.infrastructure.adapters.in.rest.controllers.asset;
 
 import com.datacenter.asset.domain.models.assignment.AssignmentState;
+import com.datacenter.asset.domain.models.assignment.AssetAssignment;
 import com.datacenter.asset.domain.ports.in.asset.ManageAssetAssignmentUseCase;
 import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.asset.AssignAssetRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.asset.AcceptAssignmentRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.asset.TransferAssetRequest;
-import com.datacenter.asset.infrastructure.adapters.in.rest.dto.request.asset.ReturnAssetRequest;
 import com.datacenter.asset.infrastructure.adapters.in.rest.dto.response.asset.AssignmentResponse;
 import com.datacenter.asset.infrastructure.adapters.in.rest.mappers.asset.AssetAssignmentRestMapper;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -28,49 +28,98 @@ public class AssetAssignmentController {
     @PostMapping
     public ResponseEntity<AssignmentResponse> assignAsset(@Valid @RequestBody AssignAssetRequest request) {
         var domain = mapper.toDomain(request);
-        // NUEVO: Pasamos el ID de la persona que está creando la asignación
         var created = assignmentUseCase.assignAsset(domain, request.getCreatedById());
         return ResponseEntity.status(201).body(mapper.toResponse(created));
     }
 
-    @PostMapping("/{id}/accept")
+    // <-- 1. ACEPTAR: Genera Acta -->
+    @PostMapping(value = "/{id}/accept", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AssignmentResponse> acceptAssignment(
             @PathVariable UUID id,
-            @RequestBody AcceptAssignmentRequest request) {
+            @RequestParam("deliveredById") UUID deliveredById,
+            @RequestParam(value = "observaciones", required = false) String observaciones,
+            @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
         
-        // NUEVO: Pasamos el ID de quien entregó el activo físicamente
-        var accepted = assignmentUseCase.acceptAssignment(
-                id, 
-                request.getDeliveredById(),
-                request.getObservaciones() != null ? request.getObservaciones() : ""
-        );
-        return ResponseEntity.ok(mapper.toResponse(accepted));
+        try {
+            byte[] imagenBytes = (imagen != null && !imagen.isEmpty()) ? imagen.getBytes() : null;
+            String obsFinales = (observaciones != null) ? observaciones : "";
+            
+            AssetAssignment accepted = assignmentUseCase.acceptAssignment(id, deliveredById, obsFinales);
+            String pdfUrl = assignmentUseCase.generarActa(id, deliveredById, obsFinales, imagenBytes);
+            accepted.setPdfPath(pdfUrl);
+
+            return ResponseEntity.ok(mapper.toResponse(accepted));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @PostMapping("/{id}/reject")
-    public ResponseEntity<AssignmentResponse> rejectAssignment(@PathVariable UUID id) {
-        var rejected = assignmentUseCase.rejectAssignment(id);
-        return ResponseEntity.ok(mapper.toResponse(rejected));
+    // <-- 2. RECHAZAR: Genera Acta -->
+    @PostMapping(value = "/{id}/reject", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AssignmentResponse> rejectAssignment(
+            @PathVariable UUID id,
+            @RequestParam("deliveredById") UUID deliveredById,
+            @RequestParam(value = "observaciones", required = false) String observaciones,
+            @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
+        
+        try {
+            byte[] imagenBytes = (imagen != null && !imagen.isEmpty()) ? imagen.getBytes() : null;
+            String obsFinales = (observaciones != null) ? observaciones : "Rechazado sin observaciones";
+            
+            AssetAssignment rejected = assignmentUseCase.rejectAssignment(id);
+            String pdfUrl = assignmentUseCase.generarActa(id, deliveredById, obsFinales, imagenBytes);
+            rejected.setPdfPath(pdfUrl);
+
+            return ResponseEntity.ok(mapper.toResponse(rejected));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @PostMapping("/{id}/transfer")
+    // <-- 3. TRANSFERIR: Convertido a form-data para generar Acta -->
+    @PostMapping(value = "/{id}/transfer", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AssignmentResponse> transferAsset(
             @PathVariable UUID id,
-            @Valid @RequestBody TransferAssetRequest request) {
-        var transferred = assignmentUseCase.transferAsset(
-                id, request.getDeliveredById(), request.getNewAssigneeId(), request.getTransferReason()
-        );
-        return ResponseEntity.ok(mapper.toResponse(transferred));
+            @RequestParam("deliveredById") UUID deliveredById,
+            @RequestParam("newAssigneeId") UUID newAssigneeId,
+            @RequestParam(value = "transferReason", required = false) String transferReason,
+            @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
+        
+        try {
+            byte[] imagenBytes = (imagen != null && !imagen.isEmpty()) ? imagen.getBytes() : null;
+            String obsFinales = (transferReason != null) ? transferReason : "Transferencia de equipo";
+
+            AssetAssignment transferred = assignmentUseCase.transferAsset(id, deliveredById, newAssigneeId, obsFinales);
+            String pdfUrl = assignmentUseCase.generarActa(id, deliveredById, obsFinales, imagenBytes);
+            transferred.setPdfPath(pdfUrl);
+
+            return ResponseEntity.ok(mapper.toResponse(transferred));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @PostMapping("/{id}/return")
+    // <-- 4. DEVOLVER: Convertido a form-data para generar Acta -->
+    @PostMapping(value = "/{id}/return", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AssignmentResponse> returnAsset(
             @PathVariable UUID id,
-            @Valid @RequestBody ReturnAssetRequest request) {
-        var returned = assignmentUseCase.returnAsset(
-                id, request.getReturnedById(), request.getReturnReason()
-        );
-        return ResponseEntity.ok(mapper.toResponse(returned));
+            @RequestParam("returnedById") UUID returnedById,
+            @RequestParam(value = "returnReason", required = false) String returnReason,
+            @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
+        
+        try {
+            byte[] imagenBytes = (imagen != null && !imagen.isEmpty()) ? imagen.getBytes() : null;
+            String obsFinales = (returnReason != null) ? returnReason : "Devolución a almacén";
+
+            AssetAssignment returned = assignmentUseCase.returnAsset(id, returnedById, obsFinales);
+            // Para el acta, la persona que devuelve hace la función de "entregar" (deliveredById)
+            String pdfUrl = assignmentUseCase.generarActa(id, returnedById, obsFinales, imagenBytes);
+            returned.setPdfPath(pdfUrl);
+
+            return ResponseEntity.ok(mapper.toResponse(returned));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @GetMapping("/state/{state}")

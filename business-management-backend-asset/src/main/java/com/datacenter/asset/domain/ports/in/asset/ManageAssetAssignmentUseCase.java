@@ -16,4 +16,7 @@ public interface ManageAssetAssignmentUseCase {
     List<AssetHistory> getAssetHistory(UUID assetId);
     AssetAssignment transferAsset(UUID assignmentId, UUID deliveredById, UUID newAssigneeId, String transferReason);
     AssetAssignment returnAsset(UUID assignmentId, UUID returnedById, String returnReason);
+    
+    // <-- MÉTODO COMBINADO (Traído de AssignAssetUseCase) -->
+    String generarActa(UUID assignmentId, UUID deliveredById, String observaciones, byte[] imagenObservacion);
 }

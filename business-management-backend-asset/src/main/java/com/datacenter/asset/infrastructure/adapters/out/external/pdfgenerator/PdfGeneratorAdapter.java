@@ -10,6 +10,8 @@ import com.itextpdf.text.pdf.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -23,11 +25,11 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             String personFirstName,
             String personLastName,
             String personDocumentNumber,
-            String personEmail,          // <-- Recibe
+            String personEmail,
             String delivererFirstName,
             String delivererLastName,
             String delivererDocumentNumber,
-            String delivererEmail,       // <-- Recibe
+            String delivererEmail,
             String assetCode,
             String assetName,
             String locationCode,         
@@ -42,13 +44,26 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             String assetPlaca,
             String assetAtributo,
             String fechaHora,
-            byte[] imagenObservacion) {          // <-- Recibe
+            byte[] imagenObservacion) { 
 
         String fileName = "acta_entrega_" + UUID.randomUUID() + ".pdf";
         String directoryPath = "src/main/resources/static/actas/";
         String filePath = directoryPath + fileName;
         
         String fechaActual = LocalDate.now().toString();
+
+        // 1. LÓGICA DEL ACUSE DINÁMICO (Sin modificar la interfaz externa)
+        String tipoAcuse = "Acuse de aceptado"; 
+        if (assignment != null && assignment.getState() != null) {
+            String stateName = assignment.getState().name();
+            if ("REJECTED".equals(stateName)) {
+                tipoAcuse = "Acuse de rechazo";
+            } else if ("TRANSFERRED".equals(stateName)) {
+                tipoAcuse = "Acuse de transferencia";
+            } else if ("RETURNED".equals(stateName)) {
+                tipoAcuse = "Acuse de devolución";
+            }
+        }
 
         try {
             File directory = new File(directoryPath);
@@ -63,15 +78,30 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             document.add(createHeaderTable());
             document.add(createInfoTable(locationCode, companyTaxId, companyName, fechaActual)); 
             
-            document.add(createItemsTable(
-                    (assetPlaca != null && !assetPlaca.isEmpty()) ? assetPlaca : assetCode, 
-                    assetName, assetSerial, assetModelo, assetMarca, assetAtributo, assetEstado));      
+            // 2. PREPARACIÓN DEL BUCLE PARA MÚLTIPLES ACTIVOS
+            List<String[]> listaActivos = new ArrayList<>();
+            String placaDefinitiva = (assetPlaca != null && !assetPlaca.isEmpty()) ? assetPlaca : assetCode;
+            
+            // Agregamos el activo actual como un arreglo a la lista. 
+            // Si en el futuro recibes más activos, solo tienes que hacer listaActivos.add(...) por cada uno.
+            listaActivos.add(new String[]{
+                placaDefinitiva, 
+                assetName, 
+                (assetSerial != null) ? assetSerial : "", 
+                (assetModelo != null) ? assetModelo : "", 
+                (assetMarca != null) ? assetMarca : "", 
+                (assetAtributo != null) ? assetAtributo : "", 
+                (assetEstado != null) ? assetEstado : ""
+            });
+
+            // Pasamos la lista completa para que genere las filas con un bucle
+            document.add(createItemsTable(listaActivos));      
             
             String receiverFullName = personFirstName + " " + personLastName;
             String delivererFullName = delivererFirstName + " " + delivererLastName;
 
-            // Pasamos los correos y la fechaHora al footer
-            document.add(createFooterTable(receiverFullName, personDocumentNumber, personEmail, delivererFullName, delivererDocumentNumber, delivererEmail, fechaActual, fechaHora, observaciones, imagenObservacion));
+            // Pasamos el tipoAcuse para la firma
+            document.add(createFooterTable(receiverFullName, personDocumentNumber, personEmail, delivererFullName, delivererDocumentNumber, delivererEmail, fechaActual, fechaHora, observaciones, imagenObservacion, tipoAcuse));
 
             document.close();
 
@@ -93,8 +123,8 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         try {
             Image logo = Image.getInstance("src/main/resources/static/logo.png");
             logo.scaleToFit(120, 50);
-            logo.setAlignment(Element.ALIGN_CENTER); // <-- aquí fuerzas el centrado
-            logoCell.addElement(logo);               // mantienes addElement
+            logo.setAlignment(Element.ALIGN_CENTER); 
+            logoCell.addElement(logo);              
         } catch (Exception e) {
             logoCell.setPhrase(new Phrase("LOGOS\nDataCenter / SIG",
                 FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
@@ -166,7 +196,8 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         return table;
     }
 
-    private PdfPTable createItemsTable(String assetPlaca, String assetName, String assetSerial, String assetModelo, String assetMarca, String assetAtributo, String assetEstado) {
+    // 3. TABLA CON BUCLE PARA MÚLTIPLES ACTIVOS
+    private PdfPTable createItemsTable(List<String[]> activos) {
         PdfPTable table = new PdfPTable(7);
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
@@ -190,15 +221,16 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         table.addCell(createCell("Atributo", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
         table.addCell(createCell("Estado", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
 
-        table.addCell(createCell(assetPlaca, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        table.addCell(createCell(assetName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        table.addCell(createCell((assetSerial != null) ? assetSerial : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        table.addCell(createCell((assetModelo != null) ? assetModelo : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        table.addCell(createCell((assetMarca != null) ? assetMarca : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        table.addCell(createCell((assetAtributo != null) ? assetAtributo : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        table.addCell(createCell((assetEstado != null) ? assetEstado : "", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        // Bucle iterando sobre la lista de activos
+        for (String[] activo : activos) {
+            for (int col = 0; col < 7; col++) {
+                table.addCell(createCell(activo[col], BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+            }
+        }
 
-        for (int row = 0; row < 3; row++) {
+        // Relleno de filas vacías (Mantiene el diseño de altura si hay pocos activos. Min 4 filas en total)
+        int filasVacias = Math.max(0, 4 - activos.size());
+        for (int row = 0; row < filasVacias; row++) {
             for (int col = 0; col < 7; col++) {
                 table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
             }
@@ -216,93 +248,93 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         String fecha,
         String fechaHora,
         String observaciones,
-        byte[] imagenObservacion) {
+        byte[] imagenObservacion,
+        String tipoAcuse) { // <-- Se agregó el parámetro tipoAcuse
 
-    PdfPTable table = new PdfPTable(2); 
-    table.setWidthPercentage(100);
-    table.setSpacingBefore(10f);
+        PdfPTable table = new PdfPTable(2); 
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(10f);
 
-    // --- Bloque de Observaciones ---
-    PdfPTable obsTable = new PdfPTable(1);
-    obsTable.addCell(createCell("OBSERVACIONES", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
+        PdfPTable obsTable = new PdfPTable(1);
+        obsTable.addCell(createCell("OBSERVACIONES", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
 
-    PdfPCell obsContentCell = new PdfPCell();
-    obsContentCell.setBackgroundColor(BaseColor.WHITE);
-    obsContentCell.setPadding(6f);
-    obsContentCell.setMinimumHeight(80f);
+        PdfPCell obsContentCell = new PdfPCell();
+        obsContentCell.setBackgroundColor(BaseColor.WHITE);
+        obsContentCell.setPadding(6f);
+        obsContentCell.setMinimumHeight(80f);
 
-    // Texto de observaciones
-    String textoObs = (observaciones != null && !observaciones.trim().isEmpty())
-            ? observaciones
-            : "Sin observaciones adicionales.";
-    Paragraph obsParagraph = new Paragraph(textoObs,
-            FontFactory.getFont(FontFactory.HELVETICA, 9, BaseColor.BLACK));
-    obsParagraph.setSpacingAfter(10f);
-    obsContentCell.addElement(obsParagraph);
+        String textoObs = (observaciones != null && !observaciones.trim().isEmpty())
+                ? observaciones
+                : "Sin observaciones adicionales.";
+        Paragraph obsParagraph = new Paragraph(textoObs,
+                FontFactory.getFont(FontFactory.HELVETICA, 9, BaseColor.BLACK));
+        obsParagraph.setSpacingAfter(10f);
+        obsContentCell.addElement(obsParagraph);
 
-    // Imagen incrustada si viene en el POST
-    if (imagenObservacion != null && imagenObservacion.length > 0) {
-        try {
-            Image img = Image.getInstance(imagenObservacion);
-            img.scaleToFit(250, 150);
-            img.setAlignment(Element.ALIGN_CENTER);
-            obsContentCell.addElement(img);
-        } catch (Exception e) {
-            System.err.println("No se pudo insertar la imagen en el PDF: " + e.getMessage());
+        if (imagenObservacion != null && imagenObservacion.length > 0) {
+            try {
+                Image img = Image.getInstance(imagenObservacion);
+                img.scaleToFit(250, 150);
+                img.setAlignment(Element.ALIGN_CENTER);
+                obsContentCell.addElement(img);
+            } catch (Exception e) {
+                System.err.println("No se pudo insertar la imagen en el PDF: " + e.getMessage());
+            }
         }
+
+        obsTable.addCell(obsContentCell);
+
+        PdfPCell leftContainer = new PdfPCell(obsTable);
+        leftContainer.setBorder(Rectangle.NO_BORDER);
+        leftContainer.setPadding(0);
+        leftContainer.setPaddingRight(5f);
+
+        PdfPTable firmTable = new PdfPTable(2);
+        try { firmTable.setWidths(new float[]{0.3f, 0.7f}); } catch (Exception ignored) {}
+
+        PdfPCell respH = createCell("RESPONSABLE DEL ACTIVO", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
+        respH.setColspan(2);
+        firmTable.addCell(respH);
+
+        firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        
+        // <-- TEXTO DINÁMICO EN LA FIRMA -->
+        String firmaRecibe = tipoAcuse + "\n" + fechaHora + "\n" + receiverEmail;
+        firmTable.addCell(createCell(firmaRecibe, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
+        
+        firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        firmTable.addCell(createCell(receiverName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        firmTable.addCell(createCell(receiverCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9)); 
+
+        PdfPCell entregaH = createCell("QUIEN ENTREGA EL ACTIVO", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
+        entregaH.setColspan(2);
+        firmTable.addCell(entregaH);
+
+        firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        String firmaEntrega = "Acuse de entrega\n" + fechaHora + "\n" + delivererEmail;
+        firmTable.addCell(createCell(firmaEntrega, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
+        firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        firmTable.addCell(createCell(delivererName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        firmTable.addCell(createCell(delivererCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+        firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 8)); 
+        firmTable.addCell(createCell("Fecha:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
+        firmTable.addCell(createCell(fecha, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
+
+        PdfPCell rightContainer = new PdfPCell(firmTable);
+        rightContainer.setBorder(Rectangle.NO_BORDER);
+        rightContainer.setPadding(0);
+        rightContainer.setPaddingLeft(5f);
+
+        table.addCell(leftContainer);
+        table.addCell(rightContainer);
+
+        return table;
     }
-
-    obsTable.addCell(obsContentCell);
-
-    PdfPCell leftContainer = new PdfPCell(obsTable);
-    leftContainer.setBorder(Rectangle.NO_BORDER);
-    leftContainer.setPadding(0);
-    leftContainer.setPaddingRight(5f);
-
-    // --- Bloque de Firmas ---
-    PdfPTable firmTable = new PdfPTable(2);
-    try { firmTable.setWidths(new float[]{0.3f, 0.7f}); } catch (Exception ignored) {}
-
-    PdfPCell respH = createCell("RESPONSABLE DEL ACTIVO", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
-    respH.setColspan(2);
-    firmTable.addCell(respH);
-
-    firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    String firmaRecibe = "Acuse de aceptado\n" + fechaHora + "\n" + receiverEmail;
-    firmTable.addCell(createCell(firmaRecibe, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
-    firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    firmTable.addCell(createCell(receiverName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-    firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    firmTable.addCell(createCell(receiverCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-    firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9)); 
-
-    PdfPCell entregaH = createCell("QUIEN ENTREGA EL ACTIVO", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
-    entregaH.setColspan(2);
-    firmTable.addCell(entregaH);
-
-    firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    String firmaEntrega = "Acuse de entrega\n" + fechaHora + "\n" + delivererEmail;
-    firmTable.addCell(createCell(firmaEntrega, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
-    firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    firmTable.addCell(createCell(delivererName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-    firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    firmTable.addCell(createCell(delivererCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-    firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 8)); 
-    firmTable.addCell(createCell("Fecha:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-    firmTable.addCell(createCell(fecha, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-
-    PdfPCell rightContainer = new PdfPCell(firmTable);
-    rightContainer.setBorder(Rectangle.NO_BORDER);
-    rightContainer.setPadding(0);
-    rightContainer.setPaddingLeft(5f);
-
-    table.addCell(leftContainer);
-    table.addCell(rightContainer);
-
-    return table;
-}
 
     private PdfPCell createCell(String text, BaseColor bgColor, BaseColor fgColor, boolean isBold, int alignment, float fontSize) {
         Font font = FontFactory.getFont(FontFactory.HELVETICA, fontSize, isBold ? Font.BOLD : Font.NORMAL, fgColor);
