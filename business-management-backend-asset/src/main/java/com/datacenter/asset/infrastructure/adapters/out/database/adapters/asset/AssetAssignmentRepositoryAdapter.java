@@ -1,20 +1,20 @@
 package com.datacenter.asset.infrastructure.adapters.out.database.adapters.asset;
 
 import com.datacenter.asset.domain.models.assignment.AssetAssignment;
-import com.datacenter.asset.domain.ports.out.asset.AssetAssignmentRepositoryPort;
 import com.datacenter.asset.domain.models.assignment.AssignmentState;
+import com.datacenter.asset.domain.ports.out.asset.AssetAssignmentRepositoryPort;
 import com.datacenter.asset.infrastructure.adapters.out.database.entities.asset.AssetAssignmentEntity;
 import com.datacenter.asset.infrastructure.adapters.out.database.mappers.asset.AssetAssignmentPersistenceMapper;
 import com.datacenter.asset.infrastructure.adapters.out.database.repositories.asset.AssetAssignmentJpaRepository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-@SuppressWarnings("null")
-@Repository
+
+@Component
 @RequiredArgsConstructor
 public class AssetAssignmentRepositoryAdapter implements AssetAssignmentRepositoryPort {
 
@@ -23,7 +23,8 @@ public class AssetAssignmentRepositoryAdapter implements AssetAssignmentReposito
 
     @Override
     public AssetAssignment save(AssetAssignment assignment) {
-        return mapper.toDomain(jpaRepository.save(mapper.toEntity(assignment)));
+        AssetAssignmentEntity entity = mapper.toEntity(assignment);
+        return mapper.toDomain(jpaRepository.save(entity));
     }
 
     @Override
@@ -38,14 +39,25 @@ public class AssetAssignmentRepositoryAdapter implements AssetAssignmentReposito
 
     @Override
     public List<AssetAssignment> findByState(AssignmentState state) {
-        
-        // El secreto está en llamar a state.name() para enviar el texto ("PENDING", "TRANSFERRED", etc.)
-        List<AssetAssignmentEntity> entities = jpaRepository.findByState(state.name());
-        
-        return entities.stream()
-                .map(mapper::toDomain) // Usa el nombre de tu mapper de persistencia
+        return jpaRepository.findByState(state.name())
+                .stream()
+                .map(mapper::toDomain)
                 .toList();
     }
 
+    @Override
+    public List<AssetAssignment> findByPersonIdAndIsActiveTrue(UUID personId) {
+        return jpaRepository.findByPersonIdAndIsActiveTrue(personId)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 
+    @Override
+    public List<AssetAssignment> findByNotesStartingWith(String prefix) {
+        return jpaRepository.findByNotesStartingWith(prefix)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

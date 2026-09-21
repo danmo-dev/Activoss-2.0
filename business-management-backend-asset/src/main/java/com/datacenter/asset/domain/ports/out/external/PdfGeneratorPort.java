@@ -1,6 +1,9 @@
 package com.datacenter.asset.domain.ports.out.external;
 
 import com.datacenter.asset.domain.models.assignment.AssetAssignment;
+import com.datacenter.asset.domain.models.assignment.AssignmentActItem;
+
+import java.util.List;
 
 public interface PdfGeneratorPort {
 
@@ -14,19 +17,10 @@ public interface PdfGeneratorPort {
             String delivererLastName,
             String delivererDocumentNumber,
             String delivererEmail,
-            String assetCode,
-            String assetName,
-            String locationCode,
+            List<AssignmentActItem> assets,
             String companyTaxId,
             String companyName,
             String observaciones,
-            String assetSerial,
-            String assetMarca,
-            String assetModelo,
-            String assetProcesador,
-            String assetEstado,
-            String assetPlaca,
-            String assetAtributo,
             String fechaHora,
             byte[] imagenObservacion
     );

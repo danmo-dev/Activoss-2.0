@@ -1,6 +1,7 @@
 package com.datacenter.asset.infrastructure.adapters.out.external.pdfgenerator;
 
 import com.datacenter.asset.domain.models.assignment.AssetAssignment;
+import com.datacenter.asset.domain.models.assignment.AssignmentActItem;
 import com.datacenter.asset.domain.ports.out.external.PdfGeneratorPort;
 import org.springframework.stereotype.Component;
 
@@ -30,81 +31,78 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             String delivererLastName,
             String delivererDocumentNumber,
             String delivererEmail,
-            String assetCode,
-            String assetName,
-            String locationCode,         
-            String companyTaxId,       
-            String companyName,          
+            List<AssignmentActItem> assets,
+            String companyTaxId,
+            String companyName,
             String observaciones,
-            String assetSerial,
-            String assetMarca,       
-            String assetModelo,      
-            String assetProcesador,  
-            String assetEstado,
-            String assetPlaca,
-            String assetAtributo,
             String fechaHora,
-            byte[] imagenObservacion) { 
+            byte[] imagenObservacion) {
 
         String fileName = "acta_entrega_" + UUID.randomUUID() + ".pdf";
         String directoryPath = "src/main/resources/static/actas/";
         String filePath = directoryPath + fileName;
-        
         String fechaActual = LocalDate.now().toString();
 
-        // 1. LÓGICA DEL ACUSE DINÁMICO (Sin modificar la interfaz externa)
-        String tipoAcuse = "Acuse de aceptado"; 
+        // locationCode se toma del primer activo (cabecera)
+        String locationCode = "";
+        if (assets != null && !assets.isEmpty() && assets.get(0).getLocationCode() != null) {
+            locationCode = assets.get(0).getLocationCode();
+        }
+
+        // Tipo de acuse dinámico
+        String tipoAcuse = "Acuse de aceptado";
         if (assignment != null && assignment.getState() != null) {
             String stateName = assignment.getState().name();
-            if ("REJECTED".equals(stateName)) {
-                tipoAcuse = "Acuse de rechazo";
-            } else if ("TRANSFERRED".equals(stateName)) {
-                tipoAcuse = "Acuse de transferencia";
-            } else if ("RETURNED".equals(stateName)) {
-                tipoAcuse = "Acuse de devolución";
-            }
+            if ("REJECTED".equals(stateName)) tipoAcuse = "Acuse de rechazo";
+            else if ("TRANSFERRED".equals(stateName)) tipoAcuse = "Acuse de transferencia";
+            else if ("RETURNED".equals(stateName)) tipoAcuse = "Acuse de devolución";
         }
 
         try {
             File directory = new File(directoryPath);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
+            if (!directory.exists()) directory.mkdirs();
 
             Document document = new Document(PageSize.A4.rotate(), 20, 20, 20, 20);
             PdfWriter.getInstance(document, new FileOutputStream(filePath));
             document.open();
 
             document.add(createHeaderTable());
-            document.add(createInfoTable(locationCode, companyTaxId, companyName, fechaActual)); 
-            
-            // 2. PREPARACIÓN DEL BUCLE PARA MÚLTIPLES ACTIVOS
-            List<String[]> listaActivos = new ArrayList<>();
-            String placaDefinitiva = (assetPlaca != null && !assetPlaca.isEmpty()) ? assetPlaca : assetCode;
-            
-            // Agregamos el activo actual como un arreglo a la lista. 
-            // Si en el futuro recibes más activos, solo tienes que hacer listaActivos.add(...) por cada uno.
-            listaActivos.add(new String[]{
-                placaDefinitiva, 
-                assetName, 
-                (assetSerial != null) ? assetSerial : "", 
-                (assetModelo != null) ? assetModelo : "", 
-                (assetMarca != null) ? assetMarca : "", 
-                (assetAtributo != null) ? assetAtributo : "", 
-                (assetEstado != null) ? assetEstado : ""
-            });
+            document.add(createInfoTable(locationCode, companyTaxId, companyName, fechaActual));
 
-            // Pasamos la lista completa para que genere las filas con un bucle
-            document.add(createItemsTable(listaActivos));      
-            
+            // BUCLE: construir filas a partir de la lista de activos
+            List<String[]> listaActivos = new ArrayList<>();
+            if (assets != null) {
+                for (AssignmentActItem item : assets) {
+                    String placaDefinitiva = (item.getAssetPlaca() != null && !item.getAssetPlaca().isEmpty())
+                            ? item.getAssetPlaca()
+                            : (item.getAssetCode() != null ? item.getAssetCode() : "");
+
+                    listaActivos.add(new String[]{
+                            placaDefinitiva,
+                            item.getAssetName()     != null ? item.getAssetName()     : "",
+                            item.getAssetSerial()   != null ? item.getAssetSerial()   : "",
+                            item.getAssetModelo()   != null ? item.getAssetModelo()   : "",
+                            item.getAssetMarca()    != null ? item.getAssetMarca()    : "",
+                            item.getAssetAtributo() != null ? item.getAssetAtributo() : "",
+                            item.getAssetEstado()   != null ? item.getAssetEstado()   : ""
+                    });
+                }
+            }
+            if (listaActivos.isEmpty()) {
+                listaActivos.add(new String[]{"", "", "", "", "", "", ""});
+            }
+
+            document.add(createItemsTable(listaActivos));
+
             String receiverFullName = personFirstName + " " + personLastName;
             String delivererFullName = delivererFirstName + " " + delivererLastName;
 
-            // Pasamos el tipoAcuse para la firma
-            document.add(createFooterTable(receiverFullName, personDocumentNumber, personEmail, delivererFullName, delivererDocumentNumber, delivererEmail, fechaActual, fechaHora, observaciones, imagenObservacion, tipoAcuse));
+            document.add(createFooterTable(
+                    receiverFullName, personDocumentNumber, personEmail,
+                    delivererFullName, delivererDocumentNumber, delivererEmail,
+                    fechaActual, fechaHora, observaciones, imagenObservacion, tipoAcuse));
 
             document.close();
-
             return "/actas/" + fileName;
         } catch (Exception e) {
             throw new RuntimeException("Error generando PDF del acta", e);
@@ -123,11 +121,11 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         try {
             Image logo = Image.getInstance("src/main/resources/static/logo.png");
             logo.scaleToFit(120, 50);
-            logo.setAlignment(Element.ALIGN_CENTER); 
-            logoCell.addElement(logo);              
+            logo.setAlignment(Element.ALIGN_CENTER);
+            logoCell.addElement(logo);
         } catch (Exception e) {
             logoCell.setPhrase(new Phrase("LOGOS\nDataCenter / SIG",
-                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
+                    FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
         }
         table.addCell(logoCell);
 
@@ -137,10 +135,13 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         table.addCell(createCell("Gestión Administrativa y Financiera", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 10));
         table.addCell(createCell("Versión: 4.0", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
 
-        table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9)); 
+        table.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         table.addCell(createCell("Página: 1 de 1", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 9));
 
-        PdfPCell classCell = createCell("Clasificación SGSI: (Confidencialidad: Uso Interno | Integridad: Crítica | Disponibilidad: Indispensable)\nEste documento contiene información clasificada. Su modificación o divulgación está prohibida sin autorización del área responsable", BaseColor.WHITE, BaseColor.DARK_GRAY, false, Element.ALIGN_RIGHT, 7);
+        PdfPCell classCell = createCell(
+                "Clasificación SGSI: (Confidencialidad: Uso Interno | Integridad: Crítica | Disponibilidad: Indispensable)\n" +
+                "Este documento contiene información clasificada. Su modificación o divulgación está prohibida sin autorización del área responsable",
+                BaseColor.WHITE, BaseColor.DARK_GRAY, false, Element.ALIGN_RIGHT, 7);
         classCell.setColspan(3);
         classCell.setBorder(Rectangle.NO_BORDER);
         table.addCell(classCell);
@@ -149,13 +150,13 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
     }
 
     private PdfPTable createInfoTable(String locationCode, String companyTaxId, String companyName, String fechaActual) {
-        PdfPTable table = new PdfPTable(6); 
+        PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
 
         table.addCell(createCell("FECHA DE INGRESO DEL ACTIVO:", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_LEFT, 9));
         table.addCell(createCell(fechaActual, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
-        
+
         PdfPCell origenH = createCell("ORIGEN CÓDIGO UBICACIÓN Y CENTRO DE COSTOS", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         origenH.setColspan(4);
         table.addCell(origenH);
@@ -189,14 +190,13 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
             if (i == 0) {
                 PdfPCell rightBox = createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9);
                 rightBox.setColspan(4);
-                rightBox.setRowspan(5); 
+                rightBox.setRowspan(5);
                 table.addCell(rightBox);
             }
         }
         return table;
     }
 
-    // 3. TABLA CON BUCLE PARA MÚLTIPLES ACTIVOS
     private PdfPTable createItemsTable(List<String[]> activos) {
         PdfPTable table = new PdfPTable(7);
         table.setWidthPercentage(100);
@@ -211,7 +211,7 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         nombreH.setRowspan(2);
         table.addCell(nombreH);
 
-        PdfPCell attrH = createCell("Descripción de atributos( marca,color, tamaño, serial, tipo de procesador, almacenamiento,entre otros)", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
+        PdfPCell attrH = createCell("Descripción de atributos (marca, color, tamaño, serial, tipo de procesador, almacenamiento, entre otros)", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         attrH.setColspan(5);
         table.addCell(attrH);
 
@@ -221,14 +221,12 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         table.addCell(createCell("Atributo", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
         table.addCell(createCell("Estado", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9));
 
-        // Bucle iterando sobre la lista de activos
         for (String[] activo : activos) {
             for (int col = 0; col < 7; col++) {
                 table.addCell(createCell(activo[col], BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
             }
         }
 
-        // Relleno de filas vacías (Mantiene el diseño de altura si hay pocos activos. Min 4 filas en total)
         int filasVacias = Math.max(0, 4 - activos.size());
         for (int row = 0; row < filasVacias; row++) {
             for (int col = 0; col < 7; col++) {
@@ -239,19 +237,19 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
     }
 
     private PdfPTable createFooterTable(
-        String receiverName,
-        String receiverCedula,
-        String receiverEmail,
-        String delivererName,
-        String delivererCedula,
-        String delivererEmail,
-        String fecha,
-        String fechaHora,
-        String observaciones,
-        byte[] imagenObservacion,
-        String tipoAcuse) { // <-- Se agregó el parámetro tipoAcuse
+            String receiverName,
+            String receiverCedula,
+            String receiverEmail,
+            String delivererName,
+            String delivererCedula,
+            String delivererEmail,
+            String fecha,
+            String fechaHora,
+            String observaciones,
+            byte[] imagenObservacion,
+            String tipoAcuse) {
 
-        PdfPTable table = new PdfPTable(2); 
+        PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
 
@@ -297,17 +295,15 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         firmTable.addCell(respH);
 
         firmTable.addCell(createCell("Firma:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        
-        // <-- TEXTO DINÁMICO EN LA FIRMA -->
         String firmaRecibe = tipoAcuse + "\n" + fechaHora + "\n" + receiverEmail;
         firmTable.addCell(createCell(firmaRecibe, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_LEFT, 8));
-        
+
         firmTable.addCell(createCell("Nombre:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(receiverName, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(receiverCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9)); 
+        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 
         PdfPCell entregaH = createCell("QUIEN ENTREGA EL ACTIVO", BLUE_HEADER, BaseColor.WHITE, true, Element.ALIGN_CENTER, 9);
         entregaH.setColspan(2);
@@ -321,7 +317,7 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         firmTable.addCell(createCell("Cedula:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(delivererCedula, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
         firmTable.addCell(createCell("Cargo:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
-        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 8)); 
+        firmTable.addCell(createCell("", BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 8));
         firmTable.addCell(createCell("Fecha:", BaseColor.WHITE, BaseColor.BLACK, true, Element.ALIGN_LEFT, 9));
         firmTable.addCell(createCell(fecha, BaseColor.WHITE, BaseColor.BLACK, false, Element.ALIGN_CENTER, 9));
 

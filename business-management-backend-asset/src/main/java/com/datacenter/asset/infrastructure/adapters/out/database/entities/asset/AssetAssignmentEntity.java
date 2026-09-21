@@ -36,7 +36,7 @@ public class AssetAssignmentEntity {
     private Boolean isActive;
 
     @Column(name = "state", nullable = false)
-    private String state = "PENDING"; // Valores: PENDING, ACCEPTED, REJECTED
+    private String state = "PENDING";
 
     @Column(name = "acceptance_date")
     private LocalDateTime acceptanceDate;
