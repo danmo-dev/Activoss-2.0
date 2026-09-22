@@ -13,6 +13,8 @@ public class AssetRelationship {
     private UUID childAssetId;
     private UUID relationshipTypeId;
     private LocalDateTime registrationDate;
+    private Boolean isActive;
+    
     public void setParentAssetId(UUID parentAssetId) {
         this.parentAssetId = parentAssetId;
     }

@@ -9,6 +9,7 @@ import com.datacenter.asset.domain.ports.in.asset.ManageAssetLifecycleUseCase;
 import com.datacenter.asset.domain.ports.out.asset.AssetAssignmentRepositoryPort;
 import com.datacenter.asset.domain.ports.out.asset.AssetHistoryRepositoryPort;
 import com.datacenter.asset.domain.ports.out.asset.AssetRepositoryPort;
+import com.datacenter.asset.domain.ports.out.asset.AssetRelationshipRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("null")
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,11 +28,19 @@ public class ManageAssetLifecycleUseCaseImpl implements ManageAssetLifecycleUseC
     private final AssetRepositoryPort assetRepository;
     private final AssetHistoryRepositoryPort historyRepository;
     private final AssetAssignmentRepositoryPort assignmentRepository;
+    private final AssetRelationshipRepositoryPort relationshipRepository;
 
     @Override
     @Transactional
     public void deactivateAsset(UUID assetId, String reason, String executedBy) {
         log.info("Inactivando activo con ID: {}", assetId);
+        if (assignmentRepository.hasActiveAssignment(assetId)) {
+            throw new BusinessException("No se puede inactivar un activo con asignación activa.");
+        }
+        var children = relationshipRepository.findByParentAssetId(assetId);
+        if (children != null && children.stream().anyMatch(com.datacenter.asset.domain.models.asset.AssetRelationship::getIsActive)) {
+            throw new BusinessException("No se puede inactivar un activo que tiene componentes vinculados.");
+        }
         changeAssetState(assetId, false, "INACTIVACION", reason, executedBy);
     }
 
@@ -47,6 +57,10 @@ public class ManageAssetLifecycleUseCaseImpl implements ManageAssetLifecycleUseC
         log.info("Dando de baja activo con ID: {}", assetId);
         if (assignmentRepository.hasActiveAssignment(assetId)) {
             throw new BusinessException("No se puede dar de baja un activo con asignación activa (RF-09).");
+        }
+        var children = relationshipRepository.findByParentAssetId(assetId);
+        if (children != null && children.stream().anyMatch(com.datacenter.asset.domain.models.asset.AssetRelationship::getIsActive)) {
+            throw new BusinessException("No se puede dar de baja un activo que tiene componentes vinculados. Desvincule los hijos primero.");
         }
         changeAssetState(assetId, false, "BAJA", reason, executedBy);
     }

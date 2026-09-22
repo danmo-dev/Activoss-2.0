@@ -39,7 +39,11 @@ public class ManageAssetRelationshipsUseCaseImpl implements ManageAssetRelations
             assetRepository.findById(new AssetId(relationship.getChildAssetId())).isEmpty()) {
             throw new BusinessException("El activo padre o hijo no existe en el inventario.");
         }
+        if (relationship.getParentAssetId().equals(relationship.getChildAssetId())) {
+            throw new BusinessException("Un activo no puede ser padre de sí mismo.");
+        }
         relationship.setRegistrationDate(LocalDateTime.now());
+        relationship.setIsActive(true);
         return relationshipRepository.save(relationship);
     }
 
@@ -89,7 +93,8 @@ public class ManageAssetRelationshipsUseCaseImpl implements ManageAssetRelations
         UUID parentId = relationship.getParentAssetId();
         UUID childId = relationship.getChildAssetId();
 
-        relationshipRepository.deleteById(relationshipId);
+        relationship.setIsActive(false);
+        relationshipRepository.save(relationship);
 
         registrarHistorial(parentId, "RELATION_DELETED",
                 "Se desancló el activo hijo: " + childId, user);

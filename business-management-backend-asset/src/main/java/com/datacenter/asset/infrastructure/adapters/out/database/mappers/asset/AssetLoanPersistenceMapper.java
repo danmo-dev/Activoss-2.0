@@ -21,6 +21,7 @@ public class AssetLoanPersistenceMapper {
         entity.setReturnDate(domain.getReturnDate());
         entity.setStatus(domain.getStatus() != null ? domain.getStatus().name() : null);
         entity.setObservation(domain.getObservation());
+        entity.setExternalPersonId(domain.getExternalPersonId());
         return entity;
     }
 
@@ -36,6 +37,7 @@ public class AssetLoanPersistenceMapper {
         domain.setReturnDate(entity.getReturnDate());
         domain.setStatus(entity.getStatus() != null ? LoanStatus.valueOf(entity.getStatus()) : null);
         domain.setObservation(entity.getObservation());
+        domain.setExternalPersonId(entity.getExternalPersonId());
         return domain;
     }
 }

@@ -23,6 +23,9 @@ public class ManageAssetLoanUseCaseImpl implements ManageAssetLoanUseCase {
     @Override
     @Transactional
     public AssetLoan createLoan(AssetLoan loan) {
+        if (loan.getExternalPersonId() == null) {
+            throw new BusinessException("Debe asignar a una persona externa responsable del préstamo.");
+        }
         if (loan.getOriginCompanyId().equals(loan.getDestinationCompanyId())) {
             throw new BusinessException("La empresa origen y destino no pueden ser la misma.");
         }

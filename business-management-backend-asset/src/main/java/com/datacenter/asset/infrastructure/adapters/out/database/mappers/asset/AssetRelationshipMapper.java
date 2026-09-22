@@ -16,6 +16,7 @@ public class AssetRelationshipMapper {
                 .childAssetId(domain.getChildAssetId())
                 .relationshipTypeId(domain.getRelationshipTypeId())
                 .registrationDate(domain.getRegistrationDate())
+                .isActive(domain.getIsActive() != null ? domain.getIsActive() : true)
                 .build();
     }
 
@@ -27,6 +28,7 @@ public class AssetRelationshipMapper {
                 .childAssetId(entity.getChildAssetId())
                 .relationshipTypeId(entity.getRelationshipTypeId())
                 .registrationDate(entity.getRegistrationDate())
+                .isActive(entity.getIsActive())
                 .build();
     }
 }

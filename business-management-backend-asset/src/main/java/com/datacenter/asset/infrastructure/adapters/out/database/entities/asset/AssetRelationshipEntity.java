@@ -29,4 +29,8 @@ public class AssetRelationshipEntity {
 
     @Column(name = "registration_date", nullable = false)
     private LocalDateTime registrationDate;
+
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
 }

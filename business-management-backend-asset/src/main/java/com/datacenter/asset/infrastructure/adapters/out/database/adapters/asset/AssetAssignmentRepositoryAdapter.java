@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@SuppressWarnings("null")
 @Component
 @RequiredArgsConstructor
 public class AssetAssignmentRepositoryAdapter implements AssetAssignmentRepositoryPort {

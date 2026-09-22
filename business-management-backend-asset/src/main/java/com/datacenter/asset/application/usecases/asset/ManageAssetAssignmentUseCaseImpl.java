@@ -19,6 +19,8 @@ import com.datacenter.asset.domain.ports.out.external.PdfGeneratorPort;
 import com.datacenter.asset.domain.ports.out.fielddefinition.FieldDefinitionRepositoryPort;
 import com.datacenter.asset.domain.ports.out.location.LocationRepositoryPort;
 import com.datacenter.asset.domain.ports.out.person.PersonRepositoryPort;
+import com.datacenter.asset.domain.ports.out.asset.AssetLoanRepositoryPort;
+import com.datacenter.asset.domain.models.person.Person;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -46,6 +48,7 @@ public class ManageAssetAssignmentUseCaseImpl implements ManageAssetAssignmentUs
     private final AssetStatusRepositoryPort assetStatusRepository;
     private final AssetValueRepositoryPort assetValueRepository;
     private final FieldDefinitionRepositoryPort fieldDefinitionRepository;
+    private final AssetLoanRepositoryPort loanRepository;
 
     private static final String BATCH_PREFIX = "[BATCH:";
 
@@ -77,8 +80,21 @@ public class ManageAssetAssignmentUseCaseImpl implements ManageAssetAssignmentUs
         String actorStr = createdById.toString();
         List<UUID> uniqueAssetIds = assetIds.stream().distinct().toList();
 
+        Person person = personRepository.findById(personId)
+                .orElseThrow(() -> new BusinessException("La persona a asignar no existe"));
+        if (!person.isActive()) {
+            throw new BusinessException("No se puede asignar un activo a un colaborador inactivo");
+        }
+
         AssetAssignment firstSaved = null;
         for (UUID assetId : uniqueAssetIds) {
+            if (assignmentRepository.hasActiveAssignment(assetId)) {
+                throw new BusinessException("El activo " + assetId + " ya se encuentra asignado.");
+            }
+            if (loanRepository.hasActiveLoan(assetId)) {
+                throw new BusinessException("El activo " + assetId + " se encuentra prestado a otra empresa.");
+            }
+
             AssetAssignment assignment = AssetAssignment.builder()
                     .assetId(assetId)
                     .personId(personId)
@@ -115,15 +131,12 @@ public class ManageAssetAssignmentUseCaseImpl implements ManageAssetAssignmentUs
         List<AssetAssignment> batch = findBatch(reference);
         if (batch.isEmpty()) batch = List.of(reference);
 
-        LocalDateTime now = LocalDateTime.now();
         String obsStr = (observaciones != null && !observaciones.isEmpty())
                 ? ". Observaciones: " + observaciones : "";
 
         AssetAssignment primary = null;
         for (AssetAssignment a : batch) {
-            a.setState(AssignmentState.ACCEPTED);
-            a.setAcceptanceDate(now);
-            a.setIsActive(true);
+            a.accept(null, observaciones); // Use domain method to validate state
             assignmentRepository.save(a);
 
             registerHistory(
@@ -153,9 +166,7 @@ public class ManageAssetAssignmentUseCaseImpl implements ManageAssetAssignmentUs
 
         AssetAssignment primary = null;
         for (AssetAssignment a : batch) {
-            a.setState(AssignmentState.REJECTED);
-            a.setIsActive(false);
-            a.setEndDate(LocalDateTime.now());
+            a.reject(null); // Use domain method to validate state
             assignmentRepository.save(a);
 
             registerHistory(

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <conversionRule conversionWord="levelcolor" converterClass="com.datacenter.asset.infrastructure.tracing.LevelColorConverter"/>
+    <conversionRule conversionWord="levelcolor" class="com.datacenter.asset.infrastructure.tracing.LevelColorConverter"/>
 
     <logger name="feign"                 level="WARN"/>
     <logger name="com.netflix.discovery" level="WARN"/>

@@ -26,6 +26,9 @@ public class AssetLoanEntity {
     @Column(name = "return_date")
     private LocalDateTime returnDate;
 
+    @Column(name = "external_person_id")
+    private UUID externalPersonId;
+
     @Column(nullable = false)
     private String status;
 
@@ -44,6 +47,8 @@ public class AssetLoanEntity {
     public void setLoanDate(LocalDateTime loanDate) { this.loanDate = loanDate; }
     public LocalDateTime getReturnDate() { return returnDate; }
     public void setReturnDate(LocalDateTime returnDate) { this.returnDate = returnDate; }
+    public UUID getExternalPersonId() { return externalPersonId; }
+    public void setExternalPersonId(UUID externalPersonId) { this.externalPersonId = externalPersonId; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getObservation() { return observation; }

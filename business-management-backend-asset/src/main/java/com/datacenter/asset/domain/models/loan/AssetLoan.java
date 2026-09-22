@@ -12,6 +12,7 @@ public class AssetLoan {
     private LocalDateTime returnDate;
     private LoanStatus status;
     private String observation;
+    private UUID externalPersonId;
 
     public AssetLoan() {}
 
@@ -41,4 +42,6 @@ public class AssetLoan {
     public void setStatus(LoanStatus status) { this.status = status; }
     public String getObservation() { return observation; }
     public void setObservation(String observation) { this.observation = observation; }
+    public UUID getExternalPersonId() { return externalPersonId; }
+    public void setExternalPersonId(UUID externalPersonId) { this.externalPersonId = externalPersonId; }
 }
