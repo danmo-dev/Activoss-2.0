@@ -1,0 +1,18 @@
+package com.datacenter.asset.domain.models.asset;
+
+import lombok.Builder;
+import lombok.Data;
+import java.util.UUID;
+
+@Data
+@Builder
+public class AssetValue {
+    private UUID id;
+    private UUID assetId;
+    private UUID fieldDefinitionId;
+    private String value;
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
